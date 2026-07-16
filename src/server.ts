@@ -31,10 +31,22 @@ if (process.env.NODE_ENV === 'production' || config.NODE_ENV === 'production') {
  *                               Register all routes
  ***********************************************************************************/
 
-getFilesWithKeyword('router', __dirname + '/app').forEach((file: string) => {
-  const { router } = require(file);
-  app.use('/', router);
-})
+try {
+  const routerFiles = getFilesWithKeyword('router', __dirname + '/app');
+  console.log(`📂 Found ${routerFiles.length} router files`);
+  
+  routerFiles.forEach((file: string) => {
+    try {
+      const { router } = require(file);
+      app.use('/', router);
+      console.log(`✅ Loaded router: ${file}`);
+    } catch (err) {
+      console.error(`❌ Error loading router ${file}:`, err);
+    }
+  });
+} catch (err) {
+  console.error('❌ Error scanning for routers:', err);
+}
 /************************************************************************************
  *                               Express Error Handling
  ***********************************************************************************/
