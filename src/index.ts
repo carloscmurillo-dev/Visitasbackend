@@ -1,9 +1,10 @@
 import app from './server';
 const sslCertificate = require('get-ssl-certificate')
 import config from '../config.json';
+require('dotenv').config();
 
 // Start the application by listening to specific port
-const port = Number(8096);
+const port = Number(process.env.PORT || 8096);
 app.listen(port, () => {
 /*   sslCertificate.get('https://bncr.fi.cr').then(function (certificate: { issuer: any; valid_from: any; valid_to: any; pemEncoded: any; }) {
     console.log(certificate)

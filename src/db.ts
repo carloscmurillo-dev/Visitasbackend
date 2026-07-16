@@ -6,7 +6,7 @@ import { AprobacionesAttributes, initModels, itemDiscountsAttributes, ItemsApiAt
 import { PublicadorImagenesAttributes,  ARTICULOSAttributes, ProveedoresAttributes, ProveeSolicitantesAttributes,VisitasHospitalesAttributes} from "../models/init-models";
 import { v2 as cloudinary } from "cloudinary";
 //import sequelize from "sequelize/types/sequelize";
-require('dotenv').config({ path: '../../variables.env' });
+require('dotenv').config();
 
 
 
