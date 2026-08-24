@@ -93,6 +93,22 @@ router.get(`${GET_MENSAJES}`, gsoneController.getMensajes);
 
 router.get(`${GET_MENSAJESXTERA}`, gsoneController.getMensajesXtera);
 
+/**
+ * @swagger
+ * /api/amimed/getReferencias:
+ *   get:
+ *     summary: Obtiene un catálogo de referencias (tipo de visita, evaluación, etc.)
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: IdReferencia
+ *         schema: {type: string}
+ *         required: true
+ *         description: Id del catálogo de referencias a consultar (p. ej. 6 = Tipo de Visita, 7 = Evaluación Visita)
+ *     responses:
+ *       200:
+ *         description: Lista de referencias
+ */
 router.get(`${GET_REFERENCIAS_ENDPOINT}`, amimedController.getReferencias);
 
 
@@ -114,50 +130,411 @@ router.delete(`${DEL_PUESTOS_ENDPOINT}`,gsoneController.delPuestos);
 
 router.get(`${GET_DESCFIJO_ENDPOINT}`, gsoneController.getDescFijo);
 
+/**
+ * @swagger
+ * /api/amimed/createVisita:
+ *   post:
+ *     summary: Crea una visita
+ *     tags: [Amimed]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: {$ref: '#/components/schemas/Visita'}
+ *     responses:
+ *       200:
+ *         description: Visita creada
+ */
 router.post(`${CREATE_VISITA_ENDPOINT}`, amimedController.createVisita);
+
+/**
+ * @swagger
+ * /api/amimed/updateVisita:
+ *   put:
+ *     summary: Actualiza una visita existente
+ *     tags: [Amimed]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: {$ref: '#/components/schemas/Visita'}
+ *     responses:
+ *       200:
+ *         description: Visita actualizada
+ */
 router.put(`${UPDATE_VISITA_ENDPOINT}`, amimedController.updateVisita);
 
 
+/**
+ * @swagger
+ * /api/amimed/getPacientes:
+ *   get:
+ *     summary: Lista todos los pacientes
+ *     tags: [Amimed]
+ *     responses:
+ *       200:
+ *         description: Lista de pacientes
+ */
 router.get(`${GET_PACIENTES_ENDPOINT}`, amimedController.getPacientes);
+
+/**
+ * @swagger
+ * /api/amimed/createPaciente:
+ *   post:
+ *     summary: Crea un paciente
+ *     tags: [Amimed]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: {$ref: '#/components/schemas/Paciente'}
+ *     responses:
+ *       200:
+ *         description: Paciente creado
+ */
 router.post(`${CREATE_PACIENTES_ENDPOINT}`, amimedController.createPaciente);
+
+/**
+ * @swagger
+ * /api/amimed/updatePaciente:
+ *   put:
+ *     summary: Actualiza un paciente existente
+ *     tags: [Amimed]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: {$ref: '#/components/schemas/Paciente'}
+ *     responses:
+ *       200:
+ *         description: Paciente actualizado
+ */
 router.put(`${UPDATE_PACIENTES_ENDPOINT}`, amimedController.updatePaciente);
+
+/**
+ * @swagger
+ * /api/amimed/delPaciente:
+ *   delete:
+ *     summary: Elimina un paciente
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: IdPaciente
+ *         schema: {type: string}
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Paciente eliminado
+ */
 router.delete(`${DEL_PACIENTE_ENDPOINT}`,amimedController.delPaciente);
 
+/**
+ * @swagger
+ * /api/amimed/getPacienteKey:
+ *   get:
+ *     summary: Verifica si ya existe una visita con esta combinación (control de duplicados)
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: IdTerapeuta
+ *         schema: {type: string}
+ *       - in: query
+ *         name: IdMesVisita
+ *         schema: {type: string}
+ *       - in: query
+ *         name: idPaciente
+ *         schema: {type: string}
+ *       - in: query
+ *         name: IdTipoVisita
+ *         schema: {type: string}
+ *       - in: query
+ *         name: IdTipoEquipo
+ *         schema: {type: string}
+ *     responses:
+ *       200:
+ *         description: Resultado de la búsqueda
+ */
 router.get(`${GET_PACIENTESXLLAVE_ENDPOINT}`, amimedController.getPacienteKey);
 
 
 
+/**
+ * @swagger
+ * /api/amimed/getEvaluacionVisitas:
+ *   get:
+ *     summary: Catálogo de evaluaciones de visita
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de evaluaciones}
+ */
 router.get(`${GET_EVALUACIONVISITAS_ENDPOINT}`, amimedController.getEvaluacionVisitas);
+
+/**
+ * @swagger
+ * /api/amimed/getMesesVisitas:
+ *   get:
+ *     summary: Catálogo de meses de visita
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de meses de visita}
+ */
 router.get(`${GET_MESESVISITAS_ENDPOINT}`, amimedController.getMesesVisitas);
+
+/**
+ * @swagger
+ * /api/amimed/getHospitales:
+ *   get:
+ *     summary: Catálogo de hospitales
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de hospitales}
+ */
 router.get(`${GET_HOSPITALES_ENDPOINT}`, amimedController.getHospitales);
+
+/**
+ * @swagger
+ * /api/amimed/getTiposEquipos:
+ *   get:
+ *     summary: Catálogo de tipos de equipo
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de tipos de equipo}
+ */
 router.get(`${GET_TIPOSEQUIPOS_ENDPOINT}`, amimedController.getTiposEquipos);
+
+/**
+ * @swagger
+ * /api/amimed/getEstadosEquipos:
+ *   get:
+ *     summary: Catálogo de estados de equipo
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de estados de equipo}
+ */
 router.get(`${GET_ESTADOSEQUIPOS_ENDPOINT}`, amimedController.getEstadosEquipos);
+
+/**
+ * @swagger
+ * /api/amimed/getTiposVisitas:
+ *   get:
+ *     summary: Catálogo de tipos de visita
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de tipos de visita}
+ */
 router.get(`${GET_TIPOSVISITAS_ENDPOINT}`, amimedController.getTiposVisitas);
+
+/**
+ * @swagger
+ * /api/amimed/getTerapeutas:
+ *   get:
+ *     summary: Catálogo de terapeutas
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de terapeutas}
+ */
 router.get(`${GET_TERAPEUTAS_ENDPOINT}`, amimedController.getTerapeutas);
+
+/**
+ * @swagger
+ * /api/amimed/getVisitasHospitales:
+ *   get:
+ *     summary: Lista visitas por hospital
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: Id
+ *         schema: {type: string}
+ *       - in: query
+ *         name: sn
+ *         schema: {type: string}
+ *       - in: query
+ *         name: confirma
+ *         schema: {type: string}
+ *     responses:
+ *       200: {description: Lista de visitas}
+ */
 router.get(`${GET_VISITASHOSPITALES_ENDPOINT}`, amimedController.getVisitasHospitales);
+
+/**
+ * @swagger
+ * /api/amimed/getVisitasxTerapeuta:
+ *   get:
+ *     summary: Lista visitas de un terapeuta
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: idTerapeuta
+ *         schema: {type: string}
+ *         required: true
+ *       - in: query
+ *         name: patron
+ *         schema: {type: string}
+ *     responses:
+ *       200: {description: Lista de visitas}
+ */
 router.get(`${GET_VISITASXTERAPEUTA_ENDPOINT}`, amimedController.getVisitasxTerapeuta);
+
+/**
+ * @swagger
+ * /api/amimed/getVisitasxTerapeutaHisto:
+ *   get:
+ *     summary: Lista histórica de visitas de un terapeuta
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: idTerapeuta
+ *         schema: {type: string}
+ *         required: true
+ *     responses:
+ *       200: {description: Lista de visitas históricas}
+ */
 router.get(`${GET_VISITASXTERAPEUTAHISTO_ENDPOINT}`, amimedController.getVisitasxTerapeutaHisto);
 
+/**
+ * @swagger
+ * /api/amimed/getInsumos:
+ *   get:
+ *     summary: Catálogo de insumos
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de insumos}
+ */
 router.get(`${GET_INSUMOS_ENDPOINT}`, amimedController.getInsumos);
 
 
+/**
+ * @swagger
+ * /api/amimed/getVisitasxFiltros:
+ *   get:
+ *     summary: Lista visitas filtradas por hospital y mes
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: IdHospital
+ *         schema: {type: string}
+ *       - in: query
+ *         name: IdMesVisita
+ *         schema: {type: string}
+ *     responses:
+ *       200: {description: Lista de visitas}
+ */
 router.get(`${GET_VISITASXFILTROS_ENDPOINT}`, amimedController.getVisitasXFiltros);
 
+/**
+ * @swagger
+ * /api/amimed/getVisitasxFiltrosHistoricas:
+ *   get:
+ *     summary: Lista histórica de visitas filtradas
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: IdHospital
+ *         schema: {type: string}
+ *       - in: query
+ *         name: IdMesVisita
+ *         schema: {type: string}
+ *       - in: query
+ *         name: patron
+ *         schema: {type: string}
+ *       - in: query
+ *         name: idTerapeuta
+ *         schema: {type: string}
+ *     responses:
+ *       200: {description: Lista de visitas históricas}
+ */
 router.get(`${GET_VISITASXFILTROS_HISTORICAS_ENDPOINT}`, amimedController.getVisitasXFiltrosHistoricas);
 
-
-
+/**
+ * @swagger
+ * /api/amimed/getPacientesXTerapeuta:
+ *   get:
+ *     summary: Lista pacientes asignados a un terapeuta
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: terapeutaId
+ *         schema: {type: string}
+ *         required: true
+ *     responses:
+ *       200: {description: Lista de pacientes}
+ */
 router.get(`${GET_PACIENTESXTERAPEUTA_ENDPOINT}`, amimedController.getPacientesXTerapeuta);
 
-
+/**
+ * @swagger
+ * /api/amimed/deleteVisita:
+ *   delete:
+ *     summary: Elimina una visita
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: Id
+ *         schema: {type: string}
+ *         required: true
+ *     responses:
+ *       200: {description: Visita eliminada}
+ */
 router.delete(`${DEL_VISITAS_ENDPOINT}`,amimedController.deleteVisita);
 
 router.get(`${GET_VISITASXTERAPEUTA_ENDPOINT}`, amimedController.getVisitasxTerapeuta);
 
+/**
+ * @swagger
+ * /api/amimed/getFotoMensaje:
+ *   get:
+ *     summary: Obtiene la foto adjunta a un mensaje
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema: {type: string}
+ *         required: true
+ *     responses:
+ *       200: {description: Foto del mensaje}
+ */
 router.get(`${GET_FOTOMENSAJE_ENDPOINT}`, amimedController.getFotoMensaje);
 
+/**
+ * @swagger
+ * /api/amimed/getImagenesCarrousel:
+ *   get:
+ *     summary: Lista las imágenes del carrusel de la pantalla de inicio
+ *     tags: [Amimed]
+ *     responses:
+ *       200: {description: Lista de imágenes}
+ */
 router.get(`${GET_IMAGENES_ENDPOINT}`, amimedController.getImagenesCarrousel);
 
+/**
+ * @swagger
+ * /api/amimed/getPacientesVisitas:
+ *   get:
+ *     summary: Lista pacientes con sus visitas de un terapeuta y mes
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: idTerapeuta
+ *         schema: {type: string}
+ *       - in: query
+ *         name: IdMesVisita
+ *         schema: {type: string}
+ *     responses:
+ *       200: {description: Lista de pacientes con visitas}
+ */
 router.get(`${GET_PACIENTESVISITAS_ENDPOINT}`, amimedController.getPacientesVisitas);
 
+/**
+ * @swagger
+ * /api/amimed/getMenuconfig:
+ *   get:
+ *     summary: Obtiene la configuración del menú para un usuario
+ *     tags: [Amimed]
+ *     parameters:
+ *       - in: query
+ *         name: gln
+ *         schema: {type: string}
+ *     responses:
+ *       200: {description: Configuración del menú}
+ */
 router.get(`${GET_MENU_ENDPOINT}`, amimedController.getMenuconfig);

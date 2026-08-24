@@ -6,6 +6,29 @@ const validarJWT = require('../../middleware/validarJWT');
 
 
 router.post(`${NEW_USER_ENDPOINT}`, authController.registerUser);
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Autentica un usuario y devuelve un token JWT
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username: {type: string}
+ *               password: {type: string}
+ *             required: [username, password]
+ *     responses:
+ *       200:
+ *         description: Usuario autenticado, devuelve token y usuario
+ *       401:
+ *         description: Usuario o contraseña inválidos
+ */
 router.post(`${LOGIN_ENDPOINT}`, authController.authUser);
 router.get(`${GET_USERS_ENDPOINT}`, authController.getUsers);
 router.get(`${GET_USER_ENDPOINT}`, authController.getUser);
