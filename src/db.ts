@@ -3077,7 +3077,7 @@ exports.getVisitasxTerapeuta= async (idTerapeuta:string, patron : string = '') =
                          terapeutas ON VisitasHospitales.IdTerapeuta = terapeutas.IdTerapeuta INNER JOIN
                          Hospitales ON VisitasHospitales.IdHospital = Hospitales.IdHospital
 						 where ( VisitasHospitales.IdTerapeuta ='${idTerapeuta}' ` + filtro + ` ) order by NombreTerapeuta,DscMesVisita,pacientes.NombrePaciente
-                        OPTION (RECOMPILE)
+                        OPTION (RECOMPILE, FORCE ORDER)
             `, { type: QueryTypes.SELECT });
             return visitas;
 
@@ -3117,7 +3117,7 @@ exports.getVisitasxTerapeutaHisto= async (idTerapeuta:string) => {
                          terapeutas ON VisitasHospitales.IdTerapeuta = terapeutas.IdTerapeuta INNER JOIN
                          Hospitales ON VisitasHospitales.IdHospital = Hospitales.IdHospital
 						 where ( VisitasHospitales.IdTerapeuta ='${idTerapeuta}'   ) order by NombreTerapeuta,DscMesVisita,pacientes.NombrePaciente
-                        OPTION (RECOMPILE)
+                        OPTION (RECOMPILE, FORCE ORDER)
             `, { type: QueryTypes.SELECT });
             return visitasHistoricas;
 
@@ -3156,7 +3156,7 @@ exports.getPacientesVisitas= async (IdTerapeuta:string, IdMesVisita:string='011'
                         (SELECT        idPaciente FROM            ViewVisitasTotales
                         WHERE        (ViewVisitasTotales.IdMesVisita =('${IdMesVisita}' ))) AND modalidad = '- REGULAR' and IdTerapeuta =  '${IdTerapeuta}'
                         order by NombrePaciente
-                        OPTION (RECOMPILE) `, { type: QueryTypes.SELECT });
+                        OPTION (RECOMPILE, FORCE ORDER) `, { type: QueryTypes.SELECT });
             return pacientes;
 
             
@@ -3189,7 +3189,7 @@ exports.getVisitasXFiltros= async (IdHospital:string,IdMesVisita:string) => {
             let visitas : any[];
             visitas= await sequelize.query(` select * from Viewvisitastotales
             where ( IdHospital ='${IdHospital}'  or  '${IdHospital}' ='*') and (IdMesVisita ='${IdMesVisita}'  or  '${IdMesVisita}' ='*' )  and  sharepoint = 1  order by DscMesVisita,NombrePaciente
-            OPTION (RECOMPILE)
+            OPTION (RECOMPILE, FORCE ORDER)
             `, { type: QueryTypes.SELECT });
             return visitas;
 
@@ -3242,7 +3242,7 @@ exports.getVisitasXFiltrosAntes= async (IdHospital:string,IdMesVisita:string) =>
 						 ReferenciasVisitas as CondTrataYParam ON VisitasHospitales.CondTrataYParam = CondTrataYParam.IdTipoReferencia left join
 						 ReferenciasVisitas as SituaEspecYCoordi ON VisitasHospitales.SituaEspecYCoordi = SituaEspecYCoordi.IdTipoReferencia 
 						 where ( VisitasHospitales.IdHospital ='${IdHospital}'  and VisitasHospitales.IdMesVisita ='${IdMesVisita}'   and  sharepoint = 1 ) order by DscMesVisita,pacientes.NombrePaciente
-                        OPTION (RECOMPILE)
+                        OPTION (RECOMPILE, FORCE ORDER)
             `, { type: QueryTypes.SELECT });
             return visitas;
 
@@ -3272,7 +3272,7 @@ exports.getVisitasXFiltrosHistoricas= async (IdHospital:string='*',IdMesVisita:s
             and  ( View_visitas_historicas.IdHospital ='${IdHospital}' or  '${IdHospital}' ='*')  
             and  (View_visitas_historicas.IdMesVisita ='${IdMesVisita}' or '${IdMesVisita}' = '*'   ) ` + filtro + `
             order by DscMesVisita,NombrePaciente
-            OPTION (RECOMPILE) `, { type: QueryTypes.SELECT });
+            OPTION (RECOMPILE, FORCE ORDER) `, { type: QueryTypes.SELECT });
             return visitas;
 
 
