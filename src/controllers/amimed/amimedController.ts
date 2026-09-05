@@ -330,50 +330,55 @@ exports.createVisita = async (req: any, res: any, next: any) => {
         MtoPreventivo
        
     } = req.body;
-    const proveedor = await createVisita(
-       { 
-            Id,
-            createdAt,
-            updatedAt,
-            deleted,
-            IdHospital,
-            idPaciente,
-            IdTerapeuta,
-            IdMesVisita,
-            FechaVisita,
-            IdTipoVisita,
-            IdTipoEquipo,
-            FrecuenciaCardiaca,
-            PresionArterialSistolica,
-            PresionArterialDiastolica,
-            SaturacionOxigeno,
-            HoraUsoPromDia,
-            HorasTotalMensuales,
-            DiasUsoSobreTotal,
-            FugaLmin,
-            IndiceApnea,
-            PresionUtilizadaEpap,
-            PresionUtilizadaIPAP,
-            PresionUtilizadaCPAP,
-            CambioEquipo,
-            NumSerieEquipoyDN,
-            IdEstadoEquipo,
-            IdEvaluacionVisita,
-            ObservacionesClinicas,
-            ComentariosAdministrativos,
-            SharePoint,
-            EstadoPaciente,
-            AdherenciaUsoTratamiento, 
-            CambEquiInsuTrata, 
-            CondTrataYParam, 
-            SituaEspecYCoordi,
-            MtoPreventivo
-          
-    
-    }
+    try {
+        const proveedor = await createVisita(
+           {
+                Id,
+                createdAt,
+                updatedAt,
+                deleted,
+                IdHospital,
+                idPaciente,
+                IdTerapeuta,
+                IdMesVisita,
+                FechaVisita,
+                IdTipoVisita,
+                IdTipoEquipo,
+                FrecuenciaCardiaca,
+                PresionArterialSistolica,
+                PresionArterialDiastolica,
+                SaturacionOxigeno,
+                HoraUsoPromDia,
+                HorasTotalMensuales,
+                DiasUsoSobreTotal,
+                FugaLmin,
+                IndiceApnea,
+                PresionUtilizadaEpap,
+                PresionUtilizadaIPAP,
+                PresionUtilizadaCPAP,
+                CambioEquipo,
+                NumSerieEquipoyDN,
+                IdEstadoEquipo,
+                IdEvaluacionVisita,
+                ObservacionesClinicas,
+                ComentariosAdministrativos,
+                SharePoint,
+                EstadoPaciente,
+                AdherenciaUsoTratamiento,
+                CambEquiInsuTrata,
+                CondTrataYParam,
+                SituaEspecYCoordi,
+                MtoPreventivo
 
-    );
-    res.status(200).send({ ok: true, msg: 'actualizar Visitas From API', proveedor });
+
+        }
+
+        );
+        res.status(200).send({ ok: true, msg: 'actualizar Visitas From API', proveedor });
+    } catch (error: any) {
+        console.error('Error al crear visita:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo guardar la visita', error: error.message });
+    }
 }
 
 
@@ -425,50 +430,55 @@ exports.updateVisita = async (req: any, res: any, next: any) => {
         SituaEspecYCoordi,SharePoint)
 
 
-    const visitaHospital = await updateVisita(
-       { 
-            Id,
-            createdAt,
-            updatedAt,
-            deleted,
-            IdHospital,
-            idPaciente,
-            IdTerapeuta,
-            IdMesVisita,
-            FechaVisita,
-            IdTipoVisita,
-            IdTipoEquipo,
-            FrecuenciaCardiaca,
-            PresionArterialSistolica,
-            PresionArterialDiastolica,
-            SaturacionOxigeno,
-            HoraUsoPromDia,
-            HorasTotalMensuales,
-            DiasUsoSobreTotal,
-            FugaLmin,
-            IndiceApnea,
-            PresionUtilizadaEpap,
-            PresionUtilizadaIPAP,
-            PresionUtilizadaCPAP,
-            CambioEquipo,
-            NumSerieEquipoyDN,
-            IdEstadoEquipo,
-            IdEvaluacionVisita,
-            ObservacionesClinicas,
-            ComentariosAdministrativos,
-            SharePoint,
-            EstadoPaciente ,
-            AdherenciaUsoTratamiento, 
-            CambEquiInsuTrata, 
-            CondTrataYParam, 
-            SituaEspecYCoordi,
-            MtoPreventivo
-     
-    
-    }
+    try {
+        const visitaHospital = await updateVisita(
+           {
+                Id,
+                createdAt,
+                updatedAt,
+                deleted,
+                IdHospital,
+                idPaciente,
+                IdTerapeuta,
+                IdMesVisita,
+                FechaVisita,
+                IdTipoVisita,
+                IdTipoEquipo,
+                FrecuenciaCardiaca,
+                PresionArterialSistolica,
+                PresionArterialDiastolica,
+                SaturacionOxigeno,
+                HoraUsoPromDia,
+                HorasTotalMensuales,
+                DiasUsoSobreTotal,
+                FugaLmin,
+                IndiceApnea,
+                PresionUtilizadaEpap,
+                PresionUtilizadaIPAP,
+                PresionUtilizadaCPAP,
+                CambioEquipo,
+                NumSerieEquipoyDN,
+                IdEstadoEquipo,
+                IdEvaluacionVisita,
+                ObservacionesClinicas,
+                ComentariosAdministrativos,
+                SharePoint,
+                EstadoPaciente ,
+                AdherenciaUsoTratamiento,
+                CambEquiInsuTrata,
+                CondTrataYParam,
+                SituaEspecYCoordi,
+                MtoPreventivo
 
-    );
-    res.status(200).send({ ok: true, msg: 'actualizar Visitas From API', visitaHospital });
+
+        }
+
+        );
+        res.status(200).send({ ok: true, msg: 'actualizar Visitas From API', visitaHospital });
+    } catch (error: any) {
+        console.error('Error al actualizar visita:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo guardar la visita', error: error.message });
+    }
 }
 
 
