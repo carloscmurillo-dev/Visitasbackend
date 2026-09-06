@@ -352,18 +352,7 @@ export type {
   visitashmCreationAttributes,
 };
 
-const modelsCache = new WeakMap<Sequelize, ReturnType<typeof initModelsUncached>>();
-
 export function initModels(sequelize: Sequelize) {
-  let models = modelsCache.get(sequelize);
-  if (!models) {
-    models = initModelsUncached(sequelize);
-    modelsCache.set(sequelize, models);
-  }
-  return models;
-}
-
-function initModelsUncached(sequelize: Sequelize) {
   const ARTICULOS = _ARTICULOS.initModel(sequelize);
   const ActividadEconomica = _ActividadEconomica.initModel(sequelize);
   const Analytics = _Analytics.initModel(sequelize);
