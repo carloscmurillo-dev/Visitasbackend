@@ -3186,9 +3186,11 @@ exports.getVisitasXFiltros= async (IdHospital:string,IdMesVisita:string) => {
         
         try {
             // console.log(idTerapeuta)
+            let filtroHospital = IdHospital !== '*' ? `and IdHospital = '${IdHospital}'` : ''
+            let filtroMes = IdMesVisita !== '*' ? `and IdMesVisita = '${IdMesVisita}'` : ''
             let visitas : any[];
             visitas= await sequelize.query(` select * from Viewvisitastotales
-            where ( IdHospital ='${IdHospital}'  or  '${IdHospital}' ='*') and (IdMesVisita ='${IdMesVisita}'  or  '${IdMesVisita}' ='*' )  and  sharepoint = 1  order by DscMesVisita,NombrePaciente
+            where sharepoint = 1 ${filtroHospital} ${filtroMes} order by DscMesVisita,NombrePaciente
             OPTION (RECOMPILE, FORCE ORDER)
             `, { type: QueryTypes.SELECT });
             return visitas;
@@ -3262,15 +3264,17 @@ exports.getVisitasXFiltrosHistoricas= async (IdHospital:string='*',IdMesVisita:s
         try {
             // console.log(idTerapeuta)
             let filtro = ''
-            if(patron.length>0) filtro = `and upper(NombrePaciente) like  '%` + patron + `%'` 
+            if(patron.length>0) filtro = `and upper(NombrePaciente) like  '%` + patron + `%'`
+
+            let filtroTerapeuta = idTerapeuta !== '*' ? `and View_visitas_historicas.IdTerapeuta = '${idTerapeuta}'` : ''
+            let filtroHospital = IdHospital !== '*' ? `and View_visitas_historicas.IdHospital = '${IdHospital}'` : ''
+            let filtroMes = IdMesVisita !== '*' ? `and View_visitas_historicas.IdMesVisita = '${IdMesVisita}'` : ''
 
             let visitas : any[];
             visitas= await sequelize.query(`
-            
-            SELECT  * from View_visitas_historicas     
-            where (View_visitas_historicas.IdTerapeuta = '${idTerapeuta}' or  '${idTerapeuta}' ='*')
-            and  ( View_visitas_historicas.IdHospital ='${IdHospital}' or  '${IdHospital}' ='*')  
-            and  (View_visitas_historicas.IdMesVisita ='${IdMesVisita}' or '${IdMesVisita}' = '*'   ) ` + filtro + `
+
+            SELECT  * from View_visitas_historicas
+            where 1=1 ${filtroTerapeuta} ${filtroHospital} ${filtroMes} ${filtro}
             order by DscMesVisita,NombrePaciente
             OPTION (RECOMPILE, FORCE ORDER) `, { type: QueryTypes.SELECT });
             return visitas;
