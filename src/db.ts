@@ -3463,4 +3463,68 @@ exports.getMenuconfig =  async (gln: string) => {
 };
 
 
+// ==================== FOTOS DE VISITA (Cloudflare R2) ====================
+
+exports.contarFotosVisita = async (idVisita: string) => {
+    const sequelize = require('./database');
+    try {
+        const r = await sequelize.query(
+            `SELECT COUNT(*) as total FROM VisitaFotos WHERE IdVisita = :idVisita`,
+            { replacements: { idVisita }, type: QueryTypes.SELECT }
+        );
+        return r[0].total;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+};
+
+exports.crearFotoVisita = async (foto: { Id: string, IdVisita: string, ObjectKey: string, Orden: number }) => {
+    const sequelize = require('./database');
+    try {
+        await sequelize.query(
+            `INSERT INTO VisitaFotos (Id, IdVisita, ObjectKey, Orden) VALUES (:Id, :IdVisita, :ObjectKey, :Orden)`,
+            { replacements: foto, type: QueryTypes.INSERT }
+        );
+        return foto;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+};
+
+exports.getFotosVisita = async (idVisita: string) => {
+    const sequelize = require('./database');
+    try {
+        const fotos = await sequelize.query(
+            `SELECT Id, IdVisita, ObjectKey, Orden, FechaSubida FROM VisitaFotos WHERE IdVisita = :idVisita ORDER BY Orden`,
+            { replacements: { idVisita }, type: QueryTypes.SELECT }
+        );
+        return fotos;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+};
+
+exports.eliminarFotoVisita = async (id: string) => {
+    const sequelize = require('./database');
+    try {
+        const foto = await sequelize.query(
+            `SELECT ObjectKey FROM VisitaFotos WHERE Id = :id`,
+            { replacements: { id }, type: QueryTypes.SELECT }
+        );
+        if (!foto.length) return null;
+
+        await sequelize.query(
+            `DELETE FROM VisitaFotos WHERE Id = :id`,
+            { replacements: { id }, type: QueryTypes.DELETE }
+        );
+        return foto[0].ObjectKey;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+};
+
 // FIN DEL CODIGO final

@@ -133,6 +133,11 @@ export const GET_PACIENTESXLLAVE_ENDPOINT = `${AMIMED_ENDPOINT}/getPacienteKey`
 
 export const GET_INSUMOS_ENDPOINT = `${AMIMED_ENDPOINT}/getInsumos`;
 
+export const GET_FOTO_UPLOAD_URL_ENDPOINT = `${AMIMED_ENDPOINT}/getFotoUploadUrl`;
+export const CONFIRM_FOTO_VISITA_ENDPOINT = `${AMIMED_ENDPOINT}/confirmarFotoVisita`;
+export const GET_FOTOS_VISITA_ENDPOINT = `${AMIMED_ENDPOINT}/getFotosVisita`;
+export const DEL_FOTO_VISITA_ENDPOINT = `${AMIMED_ENDPOINT}/delFotoVisita`;
+
 export const GET_REFERENCIAS_ENDPOINT = `${AMIMED_ENDPOINT}/getReferencias`;
 
 export const GET_IMAGENES_ENDPOINT = `${AMIMED_ENDPOINT}/getImagenesCarrousel`;

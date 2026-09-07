@@ -2,11 +2,15 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         getMesesVisitas,getTerapeutas ,getHospitales,getEvaluacionVisitas,getTiposEquipos,
         getPacientesXTerapeuta,getVisitasxTerapeuta,createVisita,updateVisita,getInsumos,
         deleteVisita,getVisitasXFiltros,getVisitasXFiltrosHistoricas,getVisitasxTerapeutaHisto,
-        getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig} = require('../../db');
+        getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
+        contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita} = require('../../db');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
 import {  } from '../../../models/init-models';
 const { transform } = require('camaro')
+const { v4: uuidv4 } = require('uuid');
+const r2 = require('../../r2');
+const MAX_FOTOS_POR_VISITA = 5;
 
 
 exports.getPacientes = async (req: any, res: any, next: any) => {
@@ -492,12 +496,95 @@ exports.deleteVisita = async (req: any, res: any, next: any) => {
 
 exports.getInsumos = async (req: any, res: any, next: any) => {
 
-    
+
 
     const articulos = await getInsumos();
     res.status(200).send({ ok: true, msg: 'get ARTICULOS From API', articulos });
 
 
+}
+
+// ==================== FOTOS DE VISITA (Cloudflare R2) ====================
+
+exports.getFotoUploadUrl = async (req: any, res: any, next: any) => {
+    try {
+        const idVisita = req.query.idVisita;
+        const contentType = req.query.contentType || 'image/jpeg';
+
+        if (!idVisita) {
+            return res.status(400).send({ ok: false, msg: 'Falta idVisita' });
+        }
+
+        const total = await contarFotosVisita(idVisita);
+        if (total >= MAX_FOTOS_POR_VISITA) {
+            return res.status(400).send({ ok: false, msg: `Ya se alcanzó el máximo de ${MAX_FOTOS_POR_VISITA} fotos por visita` });
+        }
+
+        const fotoId = uuidv4();
+        const ext = contentType === 'image/png' ? 'png' : 'jpg';
+        const objectKey = `visita-${idVisita}/${fotoId}.${ext}`;
+        const uploadUrl = await r2.getUploadUrl(objectKey, contentType);
+
+        res.status(200).send({ ok: true, fotoId, objectKey, uploadUrl });
+    } catch (error) {
+        console.error('Error al generar URL de subida:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo generar la URL de subida' });
+    }
+}
+
+exports.confirmarFotoVisita = async (req: any, res: any, next: any) => {
+    try {
+        const { idVisita, objectKey, orden } = req.body;
+
+        if (!idVisita || !objectKey) {
+            return res.status(400).send({ ok: false, msg: 'Faltan datos (idVisita, objectKey)' });
+        }
+
+        const foto = await crearFotoVisita({
+            Id: uuidv4(),
+            IdVisita: idVisita,
+            ObjectKey: objectKey,
+            Orden: orden || 1,
+        });
+
+        res.status(200).send({ ok: true, foto });
+    } catch (error) {
+        console.error('Error al confirmar foto:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo guardar la foto' });
+    }
+}
+
+exports.getFotosVisita = async (req: any, res: any, next: any) => {
+    try {
+        const idVisita = req.query.idVisita;
+        const fotos = await getFotosVisita(idVisita);
+
+        const fotosConUrl = await Promise.all(fotos.map(async (f: any) => ({
+            ...f,
+            ViewUrl: await r2.getViewUrl(f.ObjectKey),
+        })));
+
+        res.status(200).send({ ok: true, fotos: fotosConUrl });
+    } catch (error) {
+        console.error('Error al obtener fotos:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener las fotos' });
+    }
+}
+
+exports.delFotoVisita = async (req: any, res: any, next: any) => {
+    try {
+        const id = req.query.Id;
+        const objectKey = await eliminarFotoVisita(id);
+
+        if (objectKey) {
+            await r2.deleteObject(objectKey);
+        }
+
+        res.status(200).send({ ok: true });
+    } catch (error) {
+        console.error('Error al eliminar foto:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo eliminar la foto' });
+    }
 }
 
 
