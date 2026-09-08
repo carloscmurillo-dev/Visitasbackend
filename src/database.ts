@@ -12,9 +12,9 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 1434,
     pool: {
       max: 15,
-      min: 0,
+      min: 1,
       acquire: 60000,
-      idle: 10000
+      idle: 60000
     },
     dialectOptions: {
       options: {
