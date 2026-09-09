@@ -3402,17 +3402,38 @@ return null
 
 exports.deleteVisita = async (Id: string) => {
   const sequelize = require('./database');
+  const r2 = require('./r2');
     try {
         console.log('id visita a borrar:------------------------------------>>>>>>>>>>>>>>>',Id)
         const models = initModels(sequelize);
-        const Count = await models.VisitasHospitales.destroy({ where: { Id: Id } });
 
-       
-        
-        
+        // Si la visita tiene fotos vinculadas, el FK de VisitaFotos rechaza el
+        // borrado de VisitasHospitales. Sequelize.destroy() no lanza en ese
+        // caso (solo devuelve 0 filas afectadas), por lo que el borrado
+        // fallaba en silencio. Se borran primero las fotos (fila + objeto en
+        // R2) y luego la visita.
+        const fotos: any[] = await sequelize.query(
+            `SELECT Id, ObjectKey FROM VisitaFotos WHERE IdVisita = :Id`,
+            { replacements: { Id }, type: QueryTypes.SELECT }
+        );
+
+        for (const foto of fotos) {
+            await sequelize.query(
+                `DELETE FROM VisitaFotos WHERE Id = :Id`,
+                { replacements: { Id: foto.Id }, type: QueryTypes.DELETE }
+            );
+            try {
+                await r2.deleteObject(foto.ObjectKey);
+            } catch (r2Error) {
+                console.error('No se pudo borrar el objeto de R2:', foto.ObjectKey, r2Error);
+            }
+        }
+
+        const Count = await models.VisitasHospitales.destroy({ where: { Id: Id } });
         return Count
     } catch (error) {
         console.error('unable to connect to the datatabase:', error);
+        throw error;
     }
 }
 

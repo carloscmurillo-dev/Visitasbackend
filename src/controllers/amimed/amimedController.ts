@@ -489,8 +489,13 @@ exports.updateVisita = async (req: any, res: any, next: any) => {
 exports.deleteVisita = async (req: any, res: any, next: any) => {
     const visitaId = req.query.Id;
     console.log('ID DE LA VISITA',visitaId)
-    const visitadel = await deleteVisita(visitaId);
-    res.send({ msg: 'Visita eliminado',  visitadel });
+    try {
+        const visitadel = await deleteVisita(visitaId);
+        res.status(200).send({ ok: true, msg: 'Visita eliminado', visitadel });
+    } catch (error: any) {
+        console.error('Error al eliminar visita:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo eliminar la visita', error: error.message });
+    }
 }
 
 
