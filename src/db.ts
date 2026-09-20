@@ -1848,10 +1848,12 @@ exports.getMarcas = async () => {
 
     const sequelize = new Sequelize(process.env.DB_DATABASE ?? "gessa_dev2" , process.env.DB_USER ?? "devs", process.env.DB_PASSWORD ?? "devs", {
         host: process.env.DB_HOST,
-        dialect: 'mssql', port:1434,
-       
+        dialect: 'mssql', port: Number(process.env.DB_PORT) || 1434,
+
         dialectOptions: {
-          options: { encrypt: false } // Cambiar a true si el servidor requiere SSL
+          // Azure SQL Database exige conexión cifrada; el servidor viejo
+          // (on-prem, certificado autofirmado) usaba encrypt:false.
+          options: { encrypt: true, trustServerCertificate: false }
         }
       });
     console.log('BD',process.env.DB_HOST)
@@ -3131,11 +3133,11 @@ exports.getVisitasxTerapeutaHisto= async (idTerapeuta:string) => {
 exports.getPacientesVisitas= async (IdTerapeuta:string, IdMesVisita:string='011') => {
     const sequelize = new Sequelize(process.env.DB_DATABASE ?? "tucontad_medimed", process.env.DB_USER ?? "charly", process.env.DB_PASSWORD ?? "Charly2021", {
         host: process.env.DB_HOST ?? '144.126.138.17',
-        dialect: 'mssql', port:1434 ,
+        dialect: 'mssql', port: Number(process.env.DB_PORT) || 1434 ,
         dialectOptions: {
         options: {
-          encrypt: false,
-          trustServerCertificate: true,
+          encrypt: true,
+          trustServerCertificate: false,
           requestTimeout: 120000, // ⏱️ tiempo máximo de ejecución de la consulta (ms)
           connectTimeout: 120000   // ⏱️ tiempo máximo para conectar
         }}
@@ -3172,11 +3174,11 @@ exports.getPacientesVisitas= async (IdTerapeuta:string, IdMesVisita:string='011'
 exports.getVisitasXFiltros= async (IdHospital:string,IdMesVisita:string) => {
     const sequelize = new Sequelize(process.env.DB_DATABASE ?? "tucontad_medimed", process.env.DB_USER ?? "charly", process.env.DB_PASSWORD ?? "Charly2021", {
         host: process.env.DB_HOST ?? '144.126.138.17',
-        dialect: 'mssql', port:1434 ,
+        dialect: 'mssql', port: Number(process.env.DB_PORT) || 1434 ,
         dialectOptions: {
         options: {
-          encrypt: false,
-          trustServerCertificate: true,
+          encrypt: true,
+          trustServerCertificate: false,
           requestTimeout: 120000, // ⏱️ tiempo máximo de ejecución de la consulta (ms)
           connectTimeout: 120000   // ⏱️ tiempo máximo para conectar
         }}

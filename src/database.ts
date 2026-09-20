@@ -19,7 +19,11 @@ const sequelize = new Sequelize(
     dialectOptions: {
       options: {
         requestTimeout: 60000,
-        connectTimeout: 30000
+        connectTimeout: 30000,
+        // Azure SQL Database exige conexión cifrada; el servidor viejo (on-prem,
+        // certificado autofirmado) usaba encrypt:false/trustServerCertificate:true.
+        encrypt: true,
+        trustServerCertificate: false
       },
     },
     logging: process.env.NODE_ENV === 'development' ? console.log : false
