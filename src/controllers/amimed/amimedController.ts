@@ -10,6 +10,7 @@ import {  } from '../../../models/init-models';
 const { transform } = require('camaro')
 const { v4: uuidv4 } = require('uuid');
 const r2 = require('../../r2');
+const bitacora = require('../../bitacora');
 const MAX_FOTOS_POR_VISITA = 5;
 
 
@@ -589,6 +590,48 @@ exports.delFotoVisita = async (req: any, res: any, next: any) => {
     } catch (error) {
         console.error('Error al eliminar foto:', error);
         res.status(500).send({ ok: false, msg: 'No se pudo eliminar la foto' });
+    }
+}
+
+// Sólo dígitos, para poder comparar la cédula extraída de la bitácora (que
+// puede traer espacios o separadores manuscritos) contra la de pacientes.
+const soloDigitos = (valor: any) => (valor ?? '').toString().replace(/\D/g, '');
+
+exports.extraerBitacora = async (req: any, res: any, next: any) => {
+    try {
+        const { fileBase64, mediaType, idTerapeuta } = req.body;
+
+        if (!fileBase64 || !mediaType || !idTerapeuta) {
+            return res.status(400).send({ ok: false, msg: 'Faltan datos (fileBase64, mediaType, idTerapeuta)' });
+        }
+
+        const extraccion = await bitacora.extraerBitacora(fileBase64, mediaType);
+
+        const pacientesTerapeuta = await getPacientesXTerapeuta(idTerapeuta) ?? [];
+        const porCedula = new Map<string, any>();
+        pacientesTerapeuta.forEach((p: any) => {
+            const cedula = soloDigitos(p.Cedula);
+            if (cedula) porCedula.set(cedula, p);
+        });
+
+        const pacientes = extraccion.pacientes.map((fila: any) => {
+            const cedula = soloDigitos(fila.cedula);
+            const match = cedula ? porCedula.get(cedula) : undefined;
+
+            return {
+                ...fila,
+                matched: !!match,
+                idPaciente: match?.idPaciente ?? null,
+                nombrePacienteSistema: match?.NombrePaciente ?? null,
+                Hospital: match?.Hospital ?? null,
+                EquipoSistema: match?.Equipo ?? null,
+            };
+        });
+
+        res.status(200).send({ ok: true, mesVisita: extraccion.mesVisita, pacientes });
+    } catch (error: any) {
+        console.error('Error al extraer bitácora:', error);
+        res.status(500).send({ ok: false, msg: error.message || 'No se pudo extraer la bitácora' });
     }
 }
 

@@ -36,6 +36,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
     "@aws-sdk/client-s3": "^3.1127.0",
     "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "axios": "^0.27.2",
@@ -68,6 +69,7 @@
     "util": "^0.12.4",
     "uuid": "^8.3.2",
     "uuidv4": "^6.2.13",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.4.23",
+    "zod": "^4.6.5"
   }
 }

@@ -137,6 +137,7 @@ export const GET_FOTO_UPLOAD_URL_ENDPOINT = `${AMIMED_ENDPOINT}/getFotoUploadUrl
 export const CONFIRM_FOTO_VISITA_ENDPOINT = `${AMIMED_ENDPOINT}/confirmarFotoVisita`;
 export const GET_FOTOS_VISITA_ENDPOINT = `${AMIMED_ENDPOINT}/getFotosVisita`;
 export const DEL_FOTO_VISITA_ENDPOINT = `${AMIMED_ENDPOINT}/delFotoVisita`;
+export const EXTRAER_BITACORA_ENDPOINT = `${AMIMED_ENDPOINT}/extraerBitacora`;
 
 export const GET_REFERENCIAS_ENDPOINT = `${AMIMED_ENDPOINT}/getReferencias`;
 
