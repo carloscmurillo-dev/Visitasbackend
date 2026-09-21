@@ -2870,6 +2870,23 @@ exports.getTerapeutas= async () => {
     }
 }
 
+// A diferencia de getTerapeutas, solo trae Id/Nombre (sin la contraseña en
+// texto plano que trae la fila completa), para uso en pantallas que solo
+// necesitan mostrar a quién está asignado un paciente.
+exports.getTerapeutasResumen = async () => {
+    const sequelize = require('./database');
+    try {
+        const terapeutas = await sequelize.query(
+            `SELECT IdTerapeuta, NombreTerapeuta FROM terapeutas ORDER BY NombreTerapeuta`,
+            { type: QueryTypes.SELECT }
+        );
+        return terapeutas;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 
 exports.getVisitasHospitales= async (Id:string, sn:string='', confirma : number ) => {
    const sequelize = require('./database');

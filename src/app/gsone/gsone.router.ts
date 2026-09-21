@@ -16,7 +16,7 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     GET_MENSAJESXTERA,GET_FOTOMENSAJE_ENDPOINT,GET_REFERENCIAS_ENDPOINT,GET_VISITASXFILTROS_HISTORICAS_ENDPOINT, GET_IMAGENES_ENDPOINT,
     GET_PACIENTESVISITAS_ENDPOINT,CREATE_PACIENTES_ENDPOINT,UPDATE_PACIENTES_ENDPOINT,DEL_PACIENTE_ENDPOINT,GET_PACIENTESXLLAVE_ENDPOINT,GET_MENU_ENDPOINT,
     GET_FOTO_UPLOAD_URL_ENDPOINT,CONFIRM_FOTO_VISITA_ENDPOINT,GET_FOTOS_VISITA_ENDPOINT,DEL_FOTO_VISITA_ENDPOINT,
-    EXTRAER_BITACORA_ENDPOINT
+    EXTRAER_BITACORA_ENDPOINT,GET_TERAPEUTAS_RESUMEN_ENDPOINT
 } from '../../constants/endpoint';
 const gsoneController = require('../../controllers/gsone/gsoneController');
 const amimedController = require('../../controllers/amimed/amimedController');
@@ -549,3 +549,6 @@ router.delete(`${DEL_FOTO_VISITA_ENDPOINT}`, amimedController.delFotoVisita);
 
 // Importar visitas desde foto/PDF de bitácora (extracción con Claude)
 router.post(`${EXTRAER_BITACORA_ENDPOINT}`, amimedController.extraerBitacora);
+
+// Nombres de terapeutas (sin datos sensibles), para mostrar a quién está asignado un paciente
+router.get(`${GET_TERAPEUTAS_RESUMEN_ENDPOINT}`, amimedController.getTerapeutasResumen);

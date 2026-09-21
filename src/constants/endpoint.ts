@@ -120,6 +120,7 @@ export const GET_TIPOSEQUIPOS_ENDPOINT = `${AMIMED_ENDPOINT}/getTiposEquipos`
 export const GET_ESTADOSEQUIPOS_ENDPOINT = `${AMIMED_ENDPOINT}/getEstadosEquipos`
 export const GET_TIPOSVISITAS_ENDPOINT = `${AMIMED_ENDPOINT}/getTiposVisitas`
 export const GET_TERAPEUTAS_ENDPOINT = `${AMIMED_ENDPOINT}/getTerapeutas`
+export const GET_TERAPEUTAS_RESUMEN_ENDPOINT = `${AMIMED_ENDPOINT}/getTerapeutasResumen`
 export const GET_VISITASHOSPITALES_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasHospitales`
 export const GET_VISITASXTERAPEUTA_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxTerapeuta`
 export const GET_VISITASXTERAPEUTAHISTO_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxTerapeutaHisto`

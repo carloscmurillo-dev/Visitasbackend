@@ -3,7 +3,7 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         getPacientesXTerapeuta,getVisitasxTerapeuta,createVisita,updateVisita,getInsumos,
         deleteVisita,getVisitasXFiltros,getVisitasXFiltrosHistoricas,getVisitasxTerapeutaHisto,
         getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
-        contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita} = require('../../db');
+        contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen} = require('../../db');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
 import {  } from '../../../models/init-models';
@@ -274,6 +274,16 @@ exports.getMesesVisitas = async (req: any, res: any, next: any) => {
 exports.getTerapeutas = async (req: any, res: any, next: any) => {
     const Terapeutas = await getTerapeutas();
     res.status(200).send({ ok: true, Terapeutas, msg: 'get Terapeutas From API' });
+}
+
+exports.getTerapeutasResumen = async (req: any, res: any, next: any) => {
+    try {
+        const terapeutas = await getTerapeutasResumen();
+        res.status(200).send({ ok: true, terapeutas });
+    } catch (error) {
+        console.error('Error al obtener terapeutas:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener los terapeutas' });
+    }
 }
 
 
