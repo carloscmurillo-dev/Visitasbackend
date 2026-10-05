@@ -20,7 +20,7 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     GET_TERAPEUTAS_ADMIN_ENDPOINT,UPDATE_TERAPEUTA_ADMIN_ENDPOINT,
     GET_USUARIOS_ADMIN_ENDPOINT,CREATE_USUARIO_ADMIN_ENDPOINT,UPDATE_USUARIO_ADMIN_ENDPOINT
 } from '../../constants/endpoint';
-const validarAdminGln = require('../../middleware/validarAdminGln');
+const validarManager = require('../../middleware/validarManager');
 const gsoneController = require('../../controllers/gsone/gsoneController');
 const amimedController = require('../../controllers/amimed/amimedController');
 
@@ -556,11 +556,11 @@ router.post(`${EXTRAER_BITACORA_ENDPOINT}`, amimedController.extraerBitacora);
 // Nombres de terapeutas (sin datos sensibles), para mostrar a quién está asignado un paciente
 router.get(`${GET_TERAPEUTAS_RESUMEN_ENDPOINT}`, amimedController.getTerapeutasResumen);
 
-// Mantenimiento de terapeutas (AmimedFrontEnd) - solo cuentas admin (gln = '-1')
-router.get(`${GET_TERAPEUTAS_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.getTerapeutasAdmin);
-router.put(`${UPDATE_TERAPEUTA_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.updateTerapeutaAdmin);
+// Mantenimiento de terapeutas (AmimedFrontEnd) - solo cuentas Manager (UserType = '0')
+router.get(`${GET_TERAPEUTAS_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.getTerapeutasAdmin);
+router.put(`${UPDATE_TERAPEUTA_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.updateTerapeutaAdmin);
 
-// Mantenimiento de usuarios (AmimedFrontEnd) - solo cuentas admin (gln = '-1')
-router.get(`${GET_USUARIOS_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.getUsuariosAdmin);
-router.post(`${CREATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.createUsuarioAdmin);
-router.put(`${UPDATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.updateUsuarioAdmin);
+// Mantenimiento de usuarios (AmimedFrontEnd) - solo cuentas Manager (UserType = '0')
+router.get(`${GET_USUARIOS_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.getUsuariosAdmin);
+router.post(`${CREATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.createUsuarioAdmin);
+router.put(`${UPDATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.updateUsuarioAdmin);

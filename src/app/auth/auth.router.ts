@@ -3,14 +3,14 @@ export const router: Router = Router();
 import { GET_USERS_ENDPOINT, LOGIN_ENDPOINT, NEW_USER_ENDPOINT ,GET_USERS_BYUSERNAME,GET_USER_ENDPOINT,DEL_USER_ENDPOINT} from '../../constants/endpoint';
 const authController = require('../../controllers/auth/authController');
 const validarJWT = require('../../middleware/validarJWT');
-const validarAdminGln = require('../../middleware/validarAdminGln');
+const validarManager = require('../../middleware/validarManager');
 
 
 // Mantenimiento de cuentas: antes estas rutas no pedían ningún token,
 // cualquiera podía crear/listar/borrar usuarios o leer el hash de la
-// contraseña. Se restringen a cuentas admin (gln = '-1'), igual que el
-// mantenimiento de terapeutas.
-router.post(`${NEW_USER_ENDPOINT}`, validarJWT, validarAdminGln, authController.registerUser);
+// contraseña. Se restringen a cuentas Manager (UserType = '0'), igual que
+// el mantenimiento de terapeutas.
+router.post(`${NEW_USER_ENDPOINT}`, validarJWT, validarManager, authController.registerUser);
 
 /**
  * @swagger
@@ -35,10 +35,10 @@ router.post(`${NEW_USER_ENDPOINT}`, validarJWT, validarAdminGln, authController.
  *         description: Usuario o contraseña inválidos
  */
 router.post(`${LOGIN_ENDPOINT}`, authController.authUser);
-router.get(`${GET_USERS_ENDPOINT}`, validarJWT, validarAdminGln, authController.getUsers);
-router.get(`${GET_USER_ENDPOINT}`, validarJWT, validarAdminGln, authController.getUser);
-router.get(`${GET_USERS_BYUSERNAME}`, validarJWT, validarAdminGln, authController.getUserByUsername);
-router.delete(`${DEL_USER_ENDPOINT}`, validarJWT, validarAdminGln, authController.deleteUser);
+router.get(`${GET_USERS_ENDPOINT}`, validarJWT, validarManager, authController.getUsers);
+router.get(`${GET_USER_ENDPOINT}`, validarJWT, validarManager, authController.getUser);
+router.get(`${GET_USERS_BYUSERNAME}`, validarJWT, validarManager, authController.getUserByUsername);
+router.delete(`${DEL_USER_ENDPOINT}`, validarJWT, validarManager, authController.deleteUser);
 
 router.get('/auth', validarJWT, async (req, res) => {
   try {

@@ -348,7 +348,7 @@ exports.deleteUser = async (userId: number) => {
     }
 }
 
-// ============ Mantenimiento de usuarios (AmimedFrontEnd, admin gln='-1') ============
+// ============ Mantenimiento de usuarios (AmimedFrontEnd, Manager UserType='0') ============
 // Consultas propias (no las de arriba) porque getUsers/getUser hacen INNER JOIN
 // contra Proveedores por gln, lo que deja afuera cuentas admin (gln='-1') y
 // cualquier cuenta sin proveedor asociado. 'passwordHash' nunca se selecciona.
