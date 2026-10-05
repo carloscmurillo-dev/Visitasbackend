@@ -339,12 +339,84 @@ exports.deleteUser = async (userId: number) => {
         const models = initModels(sequelize);
         const Count = await models.Users.destroy({ where: { UserId: userId } });
 
-       
-        
-        
+
+
+
         return Count
     } catch (error) {
         console.error('unable to connect to the datatabase:', error);
+    }
+}
+
+// ============ Mantenimiento de usuarios (AmimedFrontEnd, admin gln='-1') ============
+// Consultas propias (no las de arriba) porque getUsers/getUser hacen INNER JOIN
+// contra Proveedores por gln, lo que deja afuera cuentas admin (gln='-1') y
+// cualquier cuenta sin proveedor asociado. 'passwordHash' nunca se selecciona.
+
+exports.getUsuariosAdmin = async () => {
+    const sequelize = require('./database');
+    try {
+        const usuarios = await sequelize.query(
+            `SELECT UserId, Username, Name, gln, UserType FROM Users ORDER BY Username`,
+            { type: QueryTypes.SELECT }
+        );
+        return usuarios;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+exports.createUsuarioAdmin = async (datos: { Username: string; Name: string | null; UserType: string; gln: string; passwordHash: string }) => {
+    const sequelize = require('./database');
+    try {
+        const models = initModels(sequelize);
+        const creado = await models.Users.create({
+            Username: datos.Username,
+            Name: datos.Name ?? undefined,
+            UserType: datos.UserType,
+            gln: datos.gln,
+            passwordHash: datos.passwordHash,
+        });
+
+        const { passwordHash, ...usuarioSinHash } = creado.get({ plain: true });
+        return usuarioSinHash;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+exports.updateUsuarioAdmin = async (
+    UserId: number,
+    datos: { Username: string; Name: string | null; UserType: string; gln: string; passwordHash?: string }
+) => {
+    const sequelize = require('./database');
+    try {
+        const models = initModels(sequelize);
+
+        const cambios: any = {
+            Username: datos.Username,
+            Name: datos.Name,
+            UserType: datos.UserType,
+            gln: datos.gln,
+        };
+        // Solo se toca el hash si se mandó una contraseña nueva; en blanco se
+        // conserva la actual (igual que el upsert viejo de NewUser).
+        if (datos.passwordHash) {
+            cambios.passwordHash = datos.passwordHash;
+        }
+
+        await models.Users.update(cambios, { where: { UserId } });
+
+        const actualizado = await models.Users.findOne({
+            where: { UserId },
+            attributes: ['UserId', 'Username', 'Name', 'gln', 'UserType'],
+        });
+        return actualizado;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
     }
 }
 

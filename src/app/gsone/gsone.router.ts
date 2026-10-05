@@ -17,7 +17,8 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     GET_PACIENTESVISITAS_ENDPOINT,CREATE_PACIENTES_ENDPOINT,UPDATE_PACIENTES_ENDPOINT,DEL_PACIENTE_ENDPOINT,GET_PACIENTESXLLAVE_ENDPOINT,GET_MENU_ENDPOINT,
     GET_FOTO_UPLOAD_URL_ENDPOINT,CONFIRM_FOTO_VISITA_ENDPOINT,GET_FOTOS_VISITA_ENDPOINT,DEL_FOTO_VISITA_ENDPOINT,
     EXTRAER_BITACORA_ENDPOINT,GET_TERAPEUTAS_RESUMEN_ENDPOINT,
-    GET_TERAPEUTAS_ADMIN_ENDPOINT,UPDATE_TERAPEUTA_ADMIN_ENDPOINT
+    GET_TERAPEUTAS_ADMIN_ENDPOINT,UPDATE_TERAPEUTA_ADMIN_ENDPOINT,
+    GET_USUARIOS_ADMIN_ENDPOINT,CREATE_USUARIO_ADMIN_ENDPOINT,UPDATE_USUARIO_ADMIN_ENDPOINT
 } from '../../constants/endpoint';
 const validarAdminGln = require('../../middleware/validarAdminGln');
 const gsoneController = require('../../controllers/gsone/gsoneController');
@@ -558,3 +559,8 @@ router.get(`${GET_TERAPEUTAS_RESUMEN_ENDPOINT}`, amimedController.getTerapeutasR
 // Mantenimiento de terapeutas (AmimedFrontEnd) - solo cuentas admin (gln = '-1')
 router.get(`${GET_TERAPEUTAS_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.getTerapeutasAdmin);
 router.put(`${UPDATE_TERAPEUTA_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.updateTerapeutaAdmin);
+
+// Mantenimiento de usuarios (AmimedFrontEnd) - solo cuentas admin (gln = '-1')
+router.get(`${GET_USUARIOS_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.getUsuariosAdmin);
+router.post(`${CREATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.createUsuarioAdmin);
+router.put(`${UPDATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarAdminGln, amimedController.updateUsuarioAdmin);

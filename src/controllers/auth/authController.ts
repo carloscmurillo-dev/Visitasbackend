@@ -19,7 +19,9 @@ exports.authUser = async (req: any, res: any, next: any) => {
         else{
             if(bcrypt.compareSync(password, user.passwordHash)){
                 const token = jwt.sign({ userId: user.UserId, userName: user.Username, gln: user.gln, adc: user.adc, name: user.Name, categoryId: user.CategoryId, UserType: user.UserType,descuentoFijoProv :user.descuentoFijoProv  }, process.env.SECRET, { expiresIn: '24h' });
-                res.send({ msg: 'Usuario autenticado', token: token,usuario: user });
+                // El hash nunca debe salir del servidor, ni siquiera al dueño de la cuenta.
+                const { passwordHash, ...usuarioSinHash } = user.get({ plain: true });
+                res.send({ msg: 'Usuario autenticado', token: token,usuario: usuarioSinHash });
                 console.log('EL TOKEN ES:',token)
             }
             else{
@@ -42,8 +44,10 @@ exports.deleteUser = async (req: any, res: any, next: any) => {
 
 exports.getUserByUsername = async (req: any, res: any, next: any) => {
     const Usuario = req.query.userName;
-   // console.log('El Articulo en API:',ArticuloID)
-    const UserName = await getUserByUsername(Usuario);
+    const encontrado = await getUserByUsername(Usuario);
+    const UserName = encontrado
+        ? (({ passwordHash, ...resto }) => resto)(encontrado.get({ plain: true }))
+        : null;
     res.status(200).send({ ok: true, msg: 'get Articulo From API', UserName });
 }
 

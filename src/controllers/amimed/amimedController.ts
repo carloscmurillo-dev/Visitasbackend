@@ -4,7 +4,8 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         deleteVisita,getVisitasXFiltros,getVisitasXFiltrosHistoricas,getVisitasxTerapeutaHisto,
         getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
-        getTerapeutasAdmin,updateTerapeutaAdmin} = require('../../db');
+        getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin} = require('../../db');
+const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
 import {  } from '../../../models/init-models';
@@ -296,6 +297,110 @@ exports.getTerapeutasAdmin = async (req: any, res: any, next: any) => {
     } catch (error) {
         console.error('Error al obtener terapeutas (admin):', error);
         res.status(500).send({ ok: false, msg: 'No se pudieron obtener los terapeutas' });
+    }
+}
+
+const USER_TYPES_VALIDOS = ['0', '2', '3', '6'];
+const USER_TYPE_TERAPEUTA = '3';
+const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Reglas de negocio compartidas por crear/editar usuario: Username con
+// formato email, UserType dentro del catálogo (0 Manager, 2 Administrativo,
+// 3 Terapeuta, 6 Doctores), y gln solo se pide/valida cuando UserType es
+// Terapeuta (debe existir en la tabla terapeutas); en cualquier otro caso
+// se guarda como '-1' (misma convención que ya usan las cuentas admin).
+const validarYNormalizarUsuario = async (body: any) => {
+    const Username = (body.Username || '').trim();
+    const Name = (body.Name || '').trim() || null;
+    const UserType = (body.UserType ?? '').toString();
+    const glnEnviado = (body.gln || '').toString().trim();
+
+    if (!Username || !REGEX_EMAIL.test(Username)) {
+        return { error: 'Username debe tener formato de correo electrónico' };
+    }
+
+    if (!USER_TYPES_VALIDOS.includes(UserType)) {
+        return { error: 'UserType inválido' };
+    }
+
+    let gln = '-1';
+    if (UserType === USER_TYPE_TERAPEUTA) {
+        if (!glnEnviado) {
+            return { error: 'Debe seleccionar un terapeuta (gln)' };
+        }
+        const terapeutas = await getTerapeutasResumen();
+        const existe = terapeutas.some((t: any) => t.IdTerapeuta?.toString().trim() === glnEnviado);
+        if (!existe) {
+            return { error: 'El terapeuta seleccionado no existe' };
+        }
+        gln = glnEnviado;
+    }
+
+    return { datos: { Username, Name, UserType, gln } };
+};
+
+exports.getUsuariosAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const usuarios = await getUsuariosAdmin();
+        res.status(200).send({ ok: true, usuarios });
+    } catch (error) {
+        console.error('Error al obtener usuarios (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener los usuarios' });
+    }
+}
+
+exports.createUsuarioAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { password } = req.body;
+
+        if (!password || password.length < 6) {
+            return res.status(400).send({ ok: false, msg: 'La contraseña debe tener al menos 6 caracteres' });
+        }
+
+        const { error, datos } = await validarYNormalizarUsuario(req.body);
+        if (error) {
+            return res.status(400).send({ ok: false, msg: error });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        const usuario = await createUsuarioAdmin({ ...datos, passwordHash });
+        res.status(200).send({ ok: true, usuario });
+    } catch (error: any) {
+        console.error('Error al crear usuario (admin):', error);
+        if (error?.name === 'SequelizeUniqueConstraintError') {
+            return res.status(409).send({ ok: false, msg: 'Ya existe un usuario con ese Username' });
+        }
+        res.status(500).send({ ok: false, msg: 'No se pudo crear el usuario' });
+    }
+}
+
+exports.updateUsuarioAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { UserId } = req.params;
+        const { password } = req.body;
+
+        const { error, datos } = await validarYNormalizarUsuario(req.body);
+        if (error) {
+            return res.status(400).send({ ok: false, msg: error });
+        }
+
+        if (password && password.length < 6) {
+            return res.status(400).send({ ok: false, msg: 'La contraseña debe tener al menos 6 caracteres' });
+        }
+
+        let passwordHash: string | undefined;
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            passwordHash = await bcrypt.hash(password, salt);
+        }
+
+        const usuario = await updateUsuarioAdmin(Number(UserId), { ...datos, passwordHash });
+        res.status(200).send({ ok: true, usuario });
+    } catch (error) {
+        console.error('Error al actualizar usuario (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo actualizar el usuario' });
     }
 }
 
