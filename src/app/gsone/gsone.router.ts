@@ -18,9 +18,11 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     GET_FOTO_UPLOAD_URL_ENDPOINT,CONFIRM_FOTO_VISITA_ENDPOINT,GET_FOTOS_VISITA_ENDPOINT,DEL_FOTO_VISITA_ENDPOINT,
     EXTRAER_BITACORA_ENDPOINT,GET_TERAPEUTAS_RESUMEN_ENDPOINT,
     GET_TERAPEUTAS_ADMIN_ENDPOINT,UPDATE_TERAPEUTA_ADMIN_ENDPOINT,
-    GET_USUARIOS_ADMIN_ENDPOINT,CREATE_USUARIO_ADMIN_ENDPOINT,UPDATE_USUARIO_ADMIN_ENDPOINT
+    GET_USUARIOS_ADMIN_ENDPOINT,CREATE_USUARIO_ADMIN_ENDPOINT,UPDATE_USUARIO_ADMIN_ENDPOINT,
+    GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT
 } from '../../constants/endpoint';
 const validarManager = require('../../middleware/validarManager');
+const validarManagerOAdministrativo = require('../../middleware/validarManagerOAdministrativo');
 const gsoneController = require('../../controllers/gsone/gsoneController');
 const amimedController = require('../../controllers/amimed/amimedController');
 
@@ -449,6 +451,11 @@ router.get(`${GET_VISITASXFILTROS_ENDPOINT}`, amimedController.getVisitasXFiltro
  *       200: {description: Lista de visitas históricas}
  */
 router.get(`${GET_VISITASXFILTROS_HISTORICAS_ENDPOINT}`, amimedController.getVisitasXFiltrosHistoricas);
+
+// Misma consulta de arriba (la usa la app móvil para cada terapeuta sobre
+// sus propias visitas, sin filtro de terapeuta), pero protegida para la
+// vista admin de AmimedFrontEnd que sí puede ver cualquier terapeuta o todos.
+router.get(`${GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getVisitasXFiltrosHistoricas);
 
 /**
  * @swagger

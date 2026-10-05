@@ -133,6 +133,7 @@ export const GET_PACIENTESXTERAPEUTA_ENDPOINT = `${AMIMED_ENDPOINT}/getPacientes
 
 export const GET_VISITASXFILTROS_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxFiltros`
 export const GET_VISITASXFILTROS_HISTORICAS_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxFiltrosHistoricas`
+export const GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT = `${AMIMED_ENDPOINT}/admin/visitasHistoricas`
 
 export const GET_PACIENTESXLLAVE_ENDPOINT = `${AMIMED_ENDPOINT}/getPacienteKey`
 
