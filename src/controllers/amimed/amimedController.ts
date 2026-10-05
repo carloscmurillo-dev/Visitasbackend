@@ -4,7 +4,8 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         deleteVisita,getVisitasXFiltros,getVisitasXFiltrosHistoricas,getVisitasxTerapeutaHisto,
         getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
-        getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin} = require('../../db');
+        getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin,
+        getVisitasTotalesAdmin} = require('../../db');
 const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
@@ -239,7 +240,20 @@ exports.getVisitasXFiltrosHistoricas = async (req: any, res: any, next: any) => 
     console.log('hosssssssssssssssssssspital', IdHospital)
     const VisitasHospitales = await getVisitasXFiltrosHistoricas(IdHospital,IdMesVisita,patron,idTerapeuta);
     res.status(200).send({ ok: true, VisitasHospitales, msg: 'get VisitasHospitales From API' });
-} 
+}
+
+// Para la pantalla admin de Visitas Históricas (AmimedFrontEnd): usa
+// ViewVisitasTotales en vez de View_visitas_historicas, a pedido explícito.
+exports.getVisitasTotalesAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { IdHospital, IdMesVisita, patron, idTerapeuta } = req.query;
+        const VisitasHospitales = await getVisitasTotalesAdmin(IdHospital, IdMesVisita, patron, idTerapeuta);
+        res.status(200).send({ ok: true, VisitasHospitales, msg: 'get VisitasHospitales From API' });
+    } catch (error) {
+        console.error('Error al obtener visitas (admin, ViewVisitasTotales):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener las visitas' });
+    }
+}
 
 
 exports.getPacientesVisitas = async (req: any, res: any, next: any) => {

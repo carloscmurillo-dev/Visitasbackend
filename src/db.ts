@@ -3432,6 +3432,50 @@ exports.getVisitasXFiltrosHistoricas= async (IdHospital:string='*',IdMesVisita:s
     }
 }
 
+// Para la pantalla admin de Visitas Históricas (AmimedFrontEnd, Manager o
+// Administrativo): usa ViewVisitasTotales (no View_visitas_historicas) a
+// pedido explícito — trae también el mes en curso y visitas sin confirmar,
+// mismo set de 52 columnas. Parametrizado con replacements, a diferencia
+// del filtro de arriba que concatena el texto directo en el SQL.
+exports.getVisitasTotalesAdmin = async (
+    IdHospital: string = '*',
+    IdMesVisita: string = '*',
+    patron: string = '',
+    idTerapeuta: string = '*'
+) => {
+    const sequelize = require('./database');
+    try {
+        const condiciones: string[] = ['1=1'];
+        const replacements: any = {};
+
+        if (IdHospital && IdHospital !== '*') {
+            condiciones.push('IdHospital = :IdHospital');
+            replacements.IdHospital = IdHospital;
+        }
+        if (IdMesVisita && IdMesVisita !== '*') {
+            condiciones.push('IdMesVisita = :IdMesVisita');
+            replacements.IdMesVisita = IdMesVisita;
+        }
+        if (idTerapeuta && idTerapeuta !== '*') {
+            condiciones.push('IdTerapeuta = :idTerapeuta');
+            replacements.idTerapeuta = idTerapeuta;
+        }
+        if (patron) {
+            condiciones.push('UPPER(NombrePaciente) LIKE :patron');
+            replacements.patron = `%${patron.toUpperCase()}%`;
+        }
+
+        const visitas = await sequelize.query(
+            `SELECT * FROM ViewVisitasTotales WHERE ${condiciones.join(' AND ')} ORDER BY DscMesVisita, NombrePaciente`,
+            { replacements, type: QueryTypes.SELECT }
+        );
+        return visitas;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 
 exports.createPaciente = async (paciente: pacientesAttributes) => {
 const sequelize = require('./database');

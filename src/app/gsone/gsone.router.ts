@@ -455,7 +455,7 @@ router.get(`${GET_VISITASXFILTROS_HISTORICAS_ENDPOINT}`, amimedController.getVis
 // Misma consulta de arriba (la usa la app móvil para cada terapeuta sobre
 // sus propias visitas, sin filtro de terapeuta), pero protegida para la
 // vista admin de AmimedFrontEnd que sí puede ver cualquier terapeuta o todos.
-router.get(`${GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getVisitasXFiltrosHistoricas);
+router.get(`${GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getVisitasTotalesAdmin);
 
 /**
  * @swagger
