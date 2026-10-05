@@ -3,7 +3,8 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         getPacientesXTerapeuta,getVisitasxTerapeuta,createVisita,updateVisita,getInsumos,
         deleteVisita,getVisitasXFiltros,getVisitasXFiltrosHistoricas,getVisitasxTerapeutaHisto,
         getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
-        contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen} = require('../../db');
+        contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
+        getTerapeutasAdmin,updateTerapeutaAdmin} = require('../../db');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
 import {  } from '../../../models/init-models';
@@ -283,6 +284,45 @@ exports.getTerapeutasResumen = async (req: any, res: any, next: any) => {
     } catch (error) {
         console.error('Error al obtener terapeutas:', error);
         res.status(500).send({ ok: false, msg: 'No se pudieron obtener los terapeutas' });
+    }
+}
+
+const DISPOSITIVOS_VALIDOS = ['IOS', 'ANDROID', 'OTRO'];
+
+exports.getTerapeutasAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const terapeutas = await getTerapeutasAdmin();
+        res.status(200).send({ ok: true, terapeutas });
+    } catch (error) {
+        console.error('Error al obtener terapeutas (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener los terapeutas' });
+    }
+}
+
+exports.updateTerapeutaAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { IdTerapeuta } = req.params;
+        const { NombreTerapeuta, email, IdPacientes, DispositivoPrimarioApp } = req.body;
+
+        if (!NombreTerapeuta || !NombreTerapeuta.trim()) {
+            return res.status(400).send({ ok: false, msg: 'NombreTerapeuta es obligatorio' });
+        }
+
+        if (DispositivoPrimarioApp && !DISPOSITIVOS_VALIDOS.includes(DispositivoPrimarioApp)) {
+            return res.status(400).send({ ok: false, msg: 'DispositivoPrimarioApp inválido' });
+        }
+
+        const terapeuta = await updateTerapeutaAdmin(IdTerapeuta, {
+            NombreTerapeuta,
+            email: email || null,
+            IdPacientes: IdPacientes || null,
+            DispositivoPrimarioApp: DispositivoPrimarioApp || null,
+        });
+
+        res.status(200).send({ ok: true, terapeuta });
+    } catch (error) {
+        console.error('Error al actualizar terapeuta (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo actualizar el terapeuta' });
     }
 }
 

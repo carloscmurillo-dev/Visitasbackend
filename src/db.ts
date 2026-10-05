@@ -2882,6 +2882,61 @@ exports.getTerapeutasResumen = async () => {
         );
         return terapeutas;
     } catch (error) {
+        console.error('unable to connect to la datatabase:', error);
+        throw error;
+    }
+}
+
+// Mantenimiento de terapeutas (pantalla admin en AmimedFrontEnd). Se listan
+// solo columnas explícitas a propósito, para que 'Contraseña' y 'password'
+// nunca puedan filtrarse acá aunque la tabla gane más columnas a futuro.
+exports.getTerapeutasAdmin = async () => {
+    const sequelize = require('./database');
+    try {
+        const terapeutas = await sequelize.query(
+            `SELECT IdTerapeuta, NombreTerapeuta, email, IdPacientes, DispositivoPrimarioApp
+             FROM terapeutas ORDER BY NombreTerapeuta`,
+            { type: QueryTypes.SELECT }
+        );
+        return terapeutas;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+exports.updateTerapeutaAdmin = async (
+    IdTerapeuta: string,
+    datos: { NombreTerapeuta: string; email: string | null; IdPacientes: string | null; DispositivoPrimarioApp: string | null }
+) => {
+    const sequelize = require('./database');
+    try {
+        await sequelize.query(
+            `UPDATE terapeutas
+             SET NombreTerapeuta = :NombreTerapeuta,
+                 email = :email,
+                 IdPacientes = :IdPacientes,
+                 DispositivoPrimarioApp = :DispositivoPrimarioApp
+             WHERE IdTerapeuta = :IdTerapeuta`,
+            {
+                replacements: {
+                    IdTerapeuta,
+                    NombreTerapeuta: datos.NombreTerapeuta,
+                    email: datos.email,
+                    IdPacientes: datos.IdPacientes,
+                    DispositivoPrimarioApp: datos.DispositivoPrimarioApp,
+                },
+                type: QueryTypes.UPDATE,
+            }
+        );
+
+        const [actualizado] = await sequelize.query(
+            `SELECT IdTerapeuta, NombreTerapeuta, email, IdPacientes, DispositivoPrimarioApp
+             FROM terapeutas WHERE IdTerapeuta = :IdTerapeuta`,
+            { replacements: {IdTerapeuta}, type: QueryTypes.SELECT }
+        );
+        return actualizado;
+    } catch (error) {
         console.error('unable to connect to the datatabase:', error);
         throw error;
     }
