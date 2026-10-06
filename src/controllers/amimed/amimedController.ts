@@ -6,7 +6,7 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
         getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin,
         getVisitasTotalesAdmin,getPacientesAdmin,updatePacienteAdmin,
-        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin} = require('../../db');
+        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin,actualizarDespachoInsumo} = require('../../db');
 const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
@@ -388,6 +388,21 @@ exports.getInsumoDetalleAdmin = async (req: any, res: any, next: any) => {
     } catch (error) {
         console.error('Error al obtener detalle de insumo (admin):', error);
         res.status(500).send({ ok: false, msg: 'No se pudo obtener la solicitud' });
+    }
+}
+
+exports.actualizarDespachoInsumo = async (req: any, res: any, next: any) => {
+    try {
+        const { mensaje_id } = req.params;
+        const { participantes } = req.body;
+        if (typeof participantes !== 'string') {
+            return res.status(400).send({ ok: false, msg: 'Faltan los insumos a despachar' });
+        }
+        await actualizarDespachoInsumo(Number(mensaje_id), participantes);
+        res.status(200).send({ ok: true });
+    } catch (error) {
+        console.error('Error al actualizar despacho de insumo:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo guardar el despacho' });
     }
 }
 

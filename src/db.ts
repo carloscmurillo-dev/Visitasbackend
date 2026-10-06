@@ -586,6 +586,25 @@ exports.getInsumoDetalleAdmin = async (mensaje_id: number) => {
     }
 }
 
+// Guarda las cantidades despachadas (columna 'participantes' re-serializada
+// desde el frontend) y pasa el estatus de la solicitud a 'Despachando...'.
+exports.actualizarDespachoInsumo = async (mensaje_id: number, participantes: string) => {
+    const sequelize = require('./database');
+    try {
+        await sequelize.query(
+            `UPDATE Vmensajes SET participantes = :participantes, status = :status
+             WHERE mensaje_id = :mensaje_id`,
+            {
+                replacements: { mensaje_id, participantes, status: 'Despachando...' },
+                type: QueryTypes.UPDATE,
+            }
+        );
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 exports.addSubCategory = async (category: string, categoryId: number) => {
      const sequelize = require('./database');
     try {
