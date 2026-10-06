@@ -394,12 +394,12 @@ exports.getInsumoDetalleAdmin = async (req: any, res: any, next: any) => {
 exports.actualizarDespachoInsumo = async (req: any, res: any, next: any) => {
     try {
         const { mensaje_id } = req.params;
-        const { participantes } = req.body;
+        const { participantes, comentarioNuevo } = req.body;
         if (typeof participantes !== 'string') {
             return res.status(400).send({ ok: false, msg: 'Faltan los insumos a despachar' });
         }
-        await actualizarDespachoInsumo(Number(mensaje_id), participantes);
-        res.status(200).send({ ok: true });
+        const { msgMensaje } = await actualizarDespachoInsumo(Number(mensaje_id), participantes, comentarioNuevo);
+        res.status(200).send({ ok: true, msgMensaje });
     } catch (error) {
         console.error('Error al actualizar despacho de insumo:', error);
         res.status(500).send({ ok: false, msg: 'No se pudo guardar el despacho' });

@@ -586,19 +586,42 @@ exports.getInsumoDetalleAdmin = async (mensaje_id: number) => {
     }
 }
 
+// Separador entre comentarios sucesivos de 'msgMensaje', para que cada
+// actualización de despacho pueda agregar un comentario nuevo sin borrar
+// los anteriores, y para poder imprimirlos por separado en la Hoja de
+// Despacho.
+const SEPARADOR_COMENTARIOS = '\n---\n';
+
 // Guarda las cantidades despachadas (columna 'participantes' re-serializada
-// desde el frontend) y pasa el estatus de la solicitud a 'Despachando...'.
-exports.actualizarDespachoInsumo = async (mensaje_id: number, participantes: string) => {
+// desde el frontend), pasa el estatus de la solicitud a 'Despachando...', y
+// si viene un comentario nuevo lo agrega al final de 'msgMensaje' sin borrar
+// lo que ya había.
+exports.actualizarDespachoInsumo = async (mensaje_id: number, participantes: string, comentarioNuevo?: string) => {
     const sequelize = require('./database');
     try {
+        const sets = ['participantes = :participantes', 'status = :status'];
+        const replacements: any = { mensaje_id, participantes, status: 'Despachando...' };
+
+        let msgMensaje: string | undefined;
+        if (comentarioNuevo && comentarioNuevo.trim()) {
+            const [fila] = await sequelize.query(
+                `SELECT msgMensaje FROM Vmensajes WHERE mensaje_id = :mensaje_id`,
+                { replacements: { mensaje_id }, type: QueryTypes.SELECT }
+            );
+            const actual = (fila?.msgMensaje || '').trim();
+            msgMensaje = actual
+                ? `${actual}${SEPARADOR_COMENTARIOS}${comentarioNuevo.trim()}`
+                : comentarioNuevo.trim();
+            sets.push('msgMensaje = :msgMensaje');
+            replacements.msgMensaje = msgMensaje;
+        }
+
         await sequelize.query(
-            `UPDATE Vmensajes SET participantes = :participantes, status = :status
-             WHERE mensaje_id = :mensaje_id`,
-            {
-                replacements: { mensaje_id, participantes, status: 'Despachando...' },
-                type: QueryTypes.UPDATE,
-            }
+            `UPDATE Vmensajes SET ${sets.join(', ')} WHERE mensaje_id = :mensaje_id`,
+            { replacements, type: QueryTypes.UPDATE }
         );
+
+        return { msgMensaje };
     } catch (error) {
         console.error('unable to connect to the datatabase:', error);
         throw error;
