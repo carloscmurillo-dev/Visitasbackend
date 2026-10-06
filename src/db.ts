@@ -510,6 +510,82 @@ exports.updatePacienteAdmin = async (idPaciente: string, datos: any) => {
     }
 }
 
+// ============ Mantenimiento de Insumos (AmimedFrontEnd, Manager o Administrativo) ============
+// Misma tabla Vmensajes que usa MensajesScreen en la app móvil, pero esta
+// lista es de solo lectura (sin editar/borrar) y ve las solicitudes de
+// TODOS los terapeutas, no solo las propias. 'Foto' (varbinary, puede ser
+// pesado) se deja fuera de la lista y solo se trae en el detalle.
+exports.getInsumosAdmin = async (filtros: { estatus?: string; usuarioSend?: string }) => {
+    const sequelize = require('./database');
+    try {
+        const condiciones: string[] = ['1=1'];
+        const replacements: any = {};
+
+        if (filtros.estatus && filtros.estatus !== '*') {
+            condiciones.push('status = :estatus');
+            replacements.estatus = filtros.estatus;
+        }
+        if (filtros.usuarioSend && filtros.usuarioSend !== '*') {
+            condiciones.push('UsuarioSend = :usuarioSend');
+            replacements.usuarioSend = filtros.usuarioSend;
+        }
+
+        const insumos = await sequelize.query(
+            `SELECT mensaje_id, UsuarioSend, asunto_id, msgMensaje, tipoMensaje, status, titulo, fechaCita, participantes
+             FROM Vmensajes WHERE ${condiciones.join(' AND ')} ORDER BY mensaje_id DESC`,
+            { replacements, type: QueryTypes.SELECT }
+        );
+        return insumos;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+// Quién puede aparecer en el filtro de "terapeuta": los remitentes que
+// realmente tienen solicitudes, con su nombre resuelto via Users.
+exports.getInsumosRemitentes = async () => {
+    const sequelize = require('./database');
+    try {
+        const remitentes = await sequelize.query(
+            `SELECT DISTINCT v.UsuarioSend, u.Name
+             FROM Vmensajes v
+             LEFT JOIN Users u ON u.Username = v.UsuarioSend
+             ORDER BY u.Name`,
+            { type: QueryTypes.SELECT }
+        );
+        return remitentes;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+exports.getInsumoDetalleAdmin = async (mensaje_id: number) => {
+    const sequelize = require('./database');
+    try {
+        const [fila] = await sequelize.query(
+            `SELECT mensaje_id, UsuarioSend, asunto_id, msgMensaje, tipoMensaje, status, titulo, fechaCita, participantes, Foto
+             FROM Vmensajes WHERE mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id }, type: QueryTypes.SELECT }
+        );
+
+        if (!fila) return null;
+
+        // Foto se guarda como varbinary, pero lo que realmente contiene es el
+        // string completo (data-uri base64, o el literal "NULL" cuando no
+        // se adjuntó nada) - se decodifica de vuelta a texto acá.
+        const fotoTexto = fila.Foto ? Buffer.from(fila.Foto).toString('utf8') : null;
+        return {
+            ...fila,
+            Foto: fotoTexto && fotoTexto !== 'NULL' ? fotoTexto : null,
+        };
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 exports.addSubCategory = async (category: string, categoryId: number) => {
      const sequelize = require('./database');
     try {

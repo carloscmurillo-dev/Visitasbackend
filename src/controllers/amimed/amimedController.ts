@@ -5,7 +5,8 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
         getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin,
-        getVisitasTotalesAdmin,getPacientesAdmin,updatePacienteAdmin} = require('../../db');
+        getVisitasTotalesAdmin,getPacientesAdmin,updatePacienteAdmin,
+        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin} = require('../../db');
 const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
@@ -354,6 +355,41 @@ const validarYNormalizarUsuario = async (body: any) => {
 };
 
 const MODALIDADES_VALIDAS = ['- REGULAR', '- RETIRADO', '- INSTALADO'];
+
+exports.getInsumosAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { estatus, usuarioSend } = req.query;
+        const insumos = await getInsumosAdmin({ estatus, usuarioSend });
+        res.status(200).send({ ok: true, insumos });
+    } catch (error) {
+        console.error('Error al obtener insumos (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener las solicitudes' });
+    }
+}
+
+exports.getInsumosRemitentes = async (req: any, res: any, next: any) => {
+    try {
+        const remitentes = await getInsumosRemitentes();
+        res.status(200).send({ ok: true, remitentes });
+    } catch (error) {
+        console.error('Error al obtener remitentes de insumos:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener los terapeutas' });
+    }
+}
+
+exports.getInsumoDetalleAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { mensaje_id } = req.params;
+        const insumo = await getInsumoDetalleAdmin(Number(mensaje_id));
+        if (!insumo) {
+            return res.status(404).send({ ok: false, msg: 'No encontrado' });
+        }
+        res.status(200).send({ ok: true, insumo });
+    } catch (error) {
+        console.error('Error al obtener detalle de insumo (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo obtener la solicitud' });
+    }
+}
 
 exports.getPacientesAdmin = async (req: any, res: any, next: any) => {
     try {

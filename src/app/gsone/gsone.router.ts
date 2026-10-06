@@ -20,7 +20,8 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     GET_TERAPEUTAS_ADMIN_ENDPOINT,UPDATE_TERAPEUTA_ADMIN_ENDPOINT,
     GET_USUARIOS_ADMIN_ENDPOINT,CREATE_USUARIO_ADMIN_ENDPOINT,UPDATE_USUARIO_ADMIN_ENDPOINT,
     GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT,
-    GET_PACIENTES_ADMIN_ENDPOINT,UPDATE_PACIENTE_ADMIN_ENDPOINT
+    GET_PACIENTES_ADMIN_ENDPOINT,UPDATE_PACIENTE_ADMIN_ENDPOINT,
+    GET_INSUMOS_ADMIN_ENDPOINT,GET_INSUMOS_REMITENTES_ENDPOINT,GET_INSUMO_DETALLE_ADMIN_ENDPOINT
 } from '../../constants/endpoint';
 const validarManager = require('../../middleware/validarManager');
 const validarManagerOAdministrativo = require('../../middleware/validarManagerOAdministrativo');
@@ -576,3 +577,9 @@ router.put(`${UPDATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarManager, amimedContr
 // Mantenimiento de pacientes (AmimedFrontEnd) - solo cuentas Manager (UserType = '0')
 router.get(`${GET_PACIENTES_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.getPacientesAdmin);
 router.put(`${UPDATE_PACIENTE_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.updatePacienteAdmin);
+
+// Mantenimiento de Insumos (AmimedFrontEnd) - Manager o Administrativo, solo lectura.
+// El orden importa: la ruta estática /remitentes va antes que la dinámica /:mensaje_id.
+router.get(`${GET_INSUMOS_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getInsumosAdmin);
+router.get(`${GET_INSUMOS_REMITENTES_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getInsumosRemitentes);
+router.get(`${GET_INSUMO_DETALLE_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getInsumoDetalleAdmin);
