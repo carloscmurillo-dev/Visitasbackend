@@ -5,7 +5,7 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         getFotoMensaje,getReferencias,getImagenesCarrousel,getPacientesVisitas,createPaciente,updatePaciente,deletePaciente, getPacienteKey,getMenuconfig,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
         getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin,
-        getVisitasTotalesAdmin} = require('../../db');
+        getVisitasTotalesAdmin,getPacientesAdmin,updatePacienteAdmin} = require('../../db');
 const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
@@ -352,6 +352,39 @@ const validarYNormalizarUsuario = async (body: any) => {
 
     return { datos: { Username, Name, UserType, gln } };
 };
+
+const MODALIDADES_VALIDAS = ['- REGULAR', '- RETIRADO', '- INSTALADO'];
+
+exports.getPacientesAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { idTerapeuta, modalidad, hospital, patron } = req.query;
+        const pacientes = await getPacientesAdmin({ idTerapeuta, modalidad, hospital, patron });
+        res.status(200).send({ ok: true, pacientes });
+    } catch (error) {
+        console.error('Error al obtener pacientes (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudieron obtener los pacientes' });
+    }
+}
+
+exports.updatePacienteAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { idPaciente } = req.params;
+        const { NombrePaciente, Modalidad } = req.body;
+
+        if (!NombrePaciente || !NombrePaciente.trim()) {
+            return res.status(400).send({ ok: false, msg: 'NombrePaciente es obligatorio' });
+        }
+        if (Modalidad && !MODALIDADES_VALIDAS.includes(Modalidad)) {
+            return res.status(400).send({ ok: false, msg: 'Modalidad inválida' });
+        }
+
+        const paciente = await updatePacienteAdmin(idPaciente, req.body);
+        res.status(200).send({ ok: true, paciente });
+    } catch (error) {
+        console.error('Error al actualizar paciente (admin):', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo actualizar el paciente' });
+    }
+}
 
 exports.getUsuariosAdmin = async (req: any, res: any, next: any) => {
     try {

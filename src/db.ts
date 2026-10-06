@@ -422,6 +422,94 @@ exports.updateUsuarioAdmin = async (
 
 
 
+// ============ Mantenimiento de pacientes (AmimedFrontEnd, Manager UserType='0') ============
+// No se selecciona FotoPaciente (columna image/BLOB) - no hace falta para
+// esta pantalla y volvería la respuesta pesada sin necesidad.
+const CAMPOS_PACIENTE_ADMIN = `idPaciente, NombrePaciente, IdTerapeuta, Modalidad, FechaNacimiento, Cedula, TelCel,
+    FechaInicioPrograma, Equipo, TipoEquipo, MarcaEquipo, ModeloEquipo, SerieEquipo, MarcaMascarilla,
+    TallaMascarilla, ModeloMascarilla, NoContrato, MedicoTratante, Observaciones, Direccion, Hospital`;
+
+exports.getPacientesAdmin = async (filtros: {
+    idTerapeuta?: string;
+    modalidad?: string;
+    hospital?: string;
+    patron?: string;
+}) => {
+    const sequelize = require('./database');
+    try {
+        const condiciones: string[] = ['1=1'];
+        const replacements: any = {};
+
+        if (filtros.idTerapeuta && filtros.idTerapeuta !== '*') {
+            condiciones.push('LTRIM(RTRIM(IdTerapeuta)) = :idTerapeuta');
+            replacements.idTerapeuta = filtros.idTerapeuta;
+        }
+        if (filtros.modalidad && filtros.modalidad !== '*') {
+            condiciones.push('Modalidad = :modalidad');
+            replacements.modalidad = filtros.modalidad;
+        }
+        if (filtros.hospital && filtros.hospital !== '*') {
+            condiciones.push('LTRIM(RTRIM(Hospital)) = :hospital');
+            replacements.hospital = filtros.hospital;
+        }
+        if (filtros.patron) {
+            condiciones.push('UPPER(NombrePaciente) LIKE :patron');
+            replacements.patron = `%${filtros.patron.toUpperCase()}%`;
+        }
+
+        const pacientes = await sequelize.query(
+            `SELECT ${CAMPOS_PACIENTE_ADMIN} FROM pacientes WHERE ${condiciones.join(' AND ')} ORDER BY NombrePaciente`,
+            { replacements, type: QueryTypes.SELECT }
+        );
+        return pacientes;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+exports.updatePacienteAdmin = async (idPaciente: string, datos: any) => {
+    const sequelize = require('./database');
+    try {
+        const models = initModels(sequelize);
+
+        await models.pacientes.update(
+            {
+                NombrePaciente: datos.NombrePaciente,
+                IdTerapeuta: datos.IdTerapeuta || null,
+                Modalidad: datos.Modalidad || null,
+                FechaNacimiento: datos.FechaNacimiento || null,
+                Cedula: datos.Cedula || null,
+                TelCel: datos.TelCel || null,
+                FechaInicioPrograma: datos.FechaInicioPrograma || null,
+                Equipo: datos.Equipo || null,
+                TipoEquipo: datos.TipoEquipo || null,
+                MarcaEquipo: datos.MarcaEquipo || null,
+                ModeloEquipo: datos.ModeloEquipo || null,
+                SerieEquipo: datos.SerieEquipo || null,
+                MarcaMascarilla: datos.MarcaMascarilla || null,
+                TallaMascarilla: datos.TallaMascarilla || null,
+                ModeloMascarilla: datos.ModeloMascarilla || null,
+                NoContrato: datos.NoContrato || null,
+                MedicoTratante: datos.MedicoTratante || null,
+                Observaciones: datos.Observaciones || null,
+                Direccion: datos.Direccion || null,
+                Hospital: datos.Hospital || null,
+            },
+            { where: { idPaciente } }
+        );
+
+        const actualizado = await sequelize.query(
+            `SELECT ${CAMPOS_PACIENTE_ADMIN} FROM pacientes WHERE idPaciente = :idPaciente`,
+            { replacements: { idPaciente }, type: QueryTypes.SELECT }
+        );
+        return actualizado[0];
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 exports.addSubCategory = async (category: string, categoryId: number) => {
      const sequelize = require('./database');
     try {

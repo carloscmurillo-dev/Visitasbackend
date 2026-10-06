@@ -19,7 +19,8 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     EXTRAER_BITACORA_ENDPOINT,GET_TERAPEUTAS_RESUMEN_ENDPOINT,
     GET_TERAPEUTAS_ADMIN_ENDPOINT,UPDATE_TERAPEUTA_ADMIN_ENDPOINT,
     GET_USUARIOS_ADMIN_ENDPOINT,CREATE_USUARIO_ADMIN_ENDPOINT,UPDATE_USUARIO_ADMIN_ENDPOINT,
-    GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT
+    GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT,
+    GET_PACIENTES_ADMIN_ENDPOINT,UPDATE_PACIENTE_ADMIN_ENDPOINT
 } from '../../constants/endpoint';
 const validarManager = require('../../middleware/validarManager');
 const validarManagerOAdministrativo = require('../../middleware/validarManagerOAdministrativo');
@@ -571,3 +572,7 @@ router.put(`${UPDATE_TERAPEUTA_ADMIN_ENDPOINT}`, auth, validarManager, amimedCon
 router.get(`${GET_USUARIOS_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.getUsuariosAdmin);
 router.post(`${CREATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.createUsuarioAdmin);
 router.put(`${UPDATE_USUARIO_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.updateUsuarioAdmin);
+
+// Mantenimiento de pacientes (AmimedFrontEnd) - solo cuentas Manager (UserType = '0')
+router.get(`${GET_PACIENTES_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.getPacientesAdmin);
+router.put(`${UPDATE_PACIENTE_ADMIN_ENDPOINT}`, auth, validarManager, amimedController.updatePacienteAdmin);
