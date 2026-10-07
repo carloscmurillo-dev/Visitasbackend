@@ -628,6 +628,97 @@ exports.actualizarDespachoInsumo = async (mensaje_id: number, participantes: str
     }
 }
 
+// Envía por correo el detalle completo de una solicitud de Insumos/Bitácora
+// (todos los campos + la tabla de insumos), desde la app móvil (botón junto
+// a "Eliminar" en MensajeScreen). El destinatario queda fijo por ahora.
+const DESTINATARIO_CORREO_MENSAJE = 'carlosmurillo@amimedsaludcr.com';
+
+exports.enviarCorreoMensaje = async (mensaje_id: number) => {
+    const sequelize = require('./database');
+    try {
+        const [fila] = await sequelize.query(
+            `SELECT Vmensajes.mensaje_id, Vmensajes.UsuarioSend, Vmensajes.tipoMensaje, Vmensajes.status,
+                    Vmensajes.titulo, Vmensajes.fechaCita, Vmensajes.msgMensaje, Vmensajes.participantes,
+                    Users.Name as NombreTerapeuta, AsuntosMsg.asunto_dsc as Prioridad
+             FROM Vmensajes
+             LEFT JOIN Users ON Users.Username = Vmensajes.UsuarioSend
+             LEFT JOIN AsuntosMsg ON Vmensajes.asunto_id = AsuntosMsg.asunto_id
+             WHERE Vmensajes.mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id }, type: QueryTypes.SELECT }
+        );
+
+        if (!fila) {
+            throw new Error('Mensaje no encontrado');
+        }
+
+        let lineas: any[] = [];
+        if (fila.participantes && fila.participantes.trim()) {
+            try {
+                lineas = JSON.parse(`[${fila.participantes}]`);
+            } catch (e) {
+                console.log('No se pudo parsear participantes para el correo:', e);
+            }
+        }
+
+        const esSolicitudInsumos = fila.tipoMensaje?.trim() === 'CITA';
+        const tipoTexto = esSolicitudInsumos ? 'Solicitud de Insumos' : 'Bitácora';
+
+        const filasTabla = lineas.map((l: any) => `
+            <tr>
+                <td style="border:1px solid #ccc;padding:6px;">${l.nombreparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.posicionparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.pacienteparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.emailparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.cantidadDespachada ?? ''}</td>
+            </tr>`).join('');
+
+        const tablaHtml = lineas.length > 0 ? `
+            <table style="border-collapse:collapse;width:100%;margin-top:10px;">
+                <thead>
+                    <tr style="background:#eee;">
+                        <th style="border:1px solid #ccc;padding:6px;">Cant.</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Insumo</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Paciente</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Nota</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Cant. Despachada</th>
+                    </tr>
+                </thead>
+                <tbody>${filasTabla}</tbody>
+            </table>` : '<p>Sin insumos registrados.</p>';
+
+        const html = `
+            <h2>${tipoTexto} No: ${fila.mensaje_id}</h2>
+            <p><strong>Terapeuta:</strong> ${fila.NombreTerapeuta || fila.UsuarioSend}</p>
+            <p><strong>Fecha:</strong> ${fila.fechaCita || ''}</p>
+            <p><strong>Prioridad:</strong> ${fila.Prioridad || ''}</p>
+            <p><strong>Estatus:</strong> ${fila.status || ''}</p>
+            <p><strong>Descripción:</strong> ${fila.titulo || ''}</p>
+            <p><strong>Observaciones:</strong><br>${(fila.msgMensaje || '').replace(/\n/g, '<br>')}</p>
+            ${tablaHtml}
+            <br><br>Favor no responder a este correo!`;
+
+        const transporter = nodemailer.createTransport({
+            host: "smtp.office365.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: "carlosmurillo@amimedsaludcr.com",
+                pass: "Nrp60pf65j@",
+            },
+        });
+
+        await transporter.sendMail({
+            from: '"Info Amimed" <info@amimedsaludcr.com>',
+            to: DESTINATARIO_CORREO_MENSAJE,
+            subject: `${tipoTexto} No: ${fila.mensaje_id} - ${fila.NombreTerapeuta || fila.UsuarioSend}`,
+            html,
+        });
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 exports.addSubCategory = async (category: string, categoryId: number) => {
      const sequelize = require('./database');
     try {

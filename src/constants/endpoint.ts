@@ -165,6 +165,7 @@ export const REGISTER_USER_ENDPOINT = `${AUTH_ENDPOINT}/registerUser`;
 
 
 export const GET_FOTOMENSAJE_ENDPOINT = `${AMIMED_ENDPOINT}/getFotoMensaje`;
+export const ENVIAR_CORREO_MENSAJE_ENDPOINT = `${AMIMED_ENDPOINT}/enviarCorreoMensaje/:mensaje_id`;
 
 export const GET_PACIENTESVISITAS_ENDPOINT = `${AMIMED_ENDPOINT}/getPacientesVisitas`;
 

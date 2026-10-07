@@ -6,7 +6,7 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
         getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin,
         getVisitasTotalesAdmin,getPacientesAdmin,updatePacienteAdmin,
-        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin,actualizarDespachoInsumo} = require('../../db');
+        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin,actualizarDespachoInsumo,enviarCorreoMensaje} = require('../../db');
 const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
@@ -403,6 +403,17 @@ exports.actualizarDespachoInsumo = async (req: any, res: any, next: any) => {
     } catch (error) {
         console.error('Error al actualizar despacho de insumo:', error);
         res.status(500).send({ ok: false, msg: 'No se pudo guardar el despacho' });
+    }
+}
+
+exports.enviarCorreoMensaje = async (req: any, res: any, next: any) => {
+    try {
+        const { mensaje_id } = req.params;
+        await enviarCorreoMensaje(Number(mensaje_id));
+        res.status(200).send({ ok: true });
+    } catch (error) {
+        console.error('Error al enviar correo de mensaje:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo enviar el correo' });
     }
 }
 
