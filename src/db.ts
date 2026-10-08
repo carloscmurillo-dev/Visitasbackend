@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 import { AprobacionesAttributes, initModels, itemDiscountsAttributes, ItemsApiAttributes,ItemsAttributes, pacientesAttributes, VmensajesAttributes } from "../models/init-models";
 import { PublicadorImagenesAttributes,  ARTICULOSAttributes, ProveedoresAttributes, ProveeSolicitantesAttributes,VisitasHospitalesAttributes} from "../models/init-models";
 import { v2 as cloudinary } from "cloudinary";
+import { enviarCorreoGraph } from "./utils/graphMailer";
 //import sequelize from "sequelize/types/sequelize";
 require('dotenv').config();
 
@@ -697,18 +698,7 @@ exports.enviarCorreoMensaje = async (mensaje_id: number) => {
             ${tablaHtml}
             <br><br>Favor no responder a este correo!`;
 
-        const transporter = nodemailer.createTransport({
-            host: "smtp.office365.com",
-            port: 587,
-            secure: false,
-            auth: {
-                user: "carlosmurillo@amimedsaludcr.com",
-                pass: "Nrp60pf65j@",
-            },
-        });
-
-        await transporter.sendMail({
-            from: '"Info Amimed" <info@amimedsaludcr.com>',
+        await enviarCorreoGraph({
             to: DESTINATARIO_CORREO_MENSAJE,
             subject: `${tipoTexto} No: ${fila.mensaje_id} - ${fila.NombreTerapeuta || fila.UsuarioSend}`,
             html,
@@ -2675,16 +2665,7 @@ exports.createMensaje = async (msg: VmensajesAttributes) => {
             if(msgResult)
             {
                 console.log('EL MENSAJE A ENVIAR POR CORREO ES',msgResult)
-                const transporter = nodemailer.createTransport({
-                    host: "smtp.office365.com",
-                    port: 587,
-                    secure: false, // upgrade later with STARTTLS
-                    auth: {
-                        user: "carlosmurillo@amimedsaludcr.com",
-                        pass: "Nrp60pf65j@",
-                    },
-                });
-              
+
                     console.log('Id Mensaje:.............>',Mensaje.mensaje_id)
                     console.log('DESTINATARIOS:---------->',msgResult[0]?.UsuarioRecep)
 
@@ -2697,16 +2678,13 @@ exports.createMensaje = async (msg: VmensajesAttributes) => {
                 console.log('OTRO','-' + msgResult[0].tipoMensaje.trim()+'-')
 
                // const userProvider = await models.Users.findOne({ where: { gln: itemResult.gln } });
-                transporter.sendMail({
-                    from: '"Info Amimed" <info@amimedsaludcr.com>', // sender address
-                   // to: msgResult[0]?.UsuarioRecep, // list of receivers
+                enviarCorreoGraph({
                     to: 'carlosmurillo@amimedsaludcr.com',
                     cc: msgResult[0]?.UsuarioSend,
-                    subject: sujeto ,
-                
-                    html: tipoProceso +  `\n Hospital:  ${msgResult[0]?.Hospital} \n Insumos para  Pacientes: ${msgResult[0]?.Asunto} \n Mensaje: \n ${msgResult[0].msgMensaje} \n `+ `\n\n\nFavor no responder a este correo!`
-                }).then((info: any) => {
-                    console.log({ info });
+                    subject: sujeto,
+                    html: (tipoProceso +  `\n Hospital:  ${msgResult[0]?.Hospital} \n Insumos para  Pacientes: ${msgResult[0]?.Asunto} \n Mensaje: \n ${msgResult[0].msgMensaje} \n `+ `\n\n\nFavor no responder a este correo!`).replace(/\n/g, '<br>')
+                }).then(() => {
+                    console.log('Correo de nueva solicitud enviado');
                 }).catch(console.error);
 
                
