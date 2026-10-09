@@ -703,6 +703,109 @@ exports.enviarCorreoMensaje = async (mensaje_id: number) => {
             subject: `${tipoTexto} No: ${fila.mensaje_id} - ${fila.NombreTerapeuta || fila.UsuarioSend}`,
             html,
         });
+
+        // A partir de este envío (botón del terapeuta en la app móvil) la
+        // solicitud queda cerrada para edición y pasa a 'ENVIADA'.
+        await sequelize.query(
+            `UPDATE Vmensajes SET status = :status WHERE mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id, status: 'ENVIADA' }, type: QueryTypes.UPDATE }
+        );
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+// Reporte combinado de despacho (todos los pacientes en un solo correo, a
+// diferencia de la Hoja de Despacho impresa que genera una hoja por
+// paciente), disparado por el botón "Fin de Proceso" en el admin web.
+// Cierra el proceso: pasa la solicitud a 'DESPACHADA'.
+exports.finalizarProcesoInsumo = async (mensaje_id: number) => {
+    const sequelize = require('./database');
+    try {
+        const [fila] = await sequelize.query(
+            `SELECT Vmensajes.mensaje_id, Vmensajes.UsuarioSend, Vmensajes.tipoMensaje, Vmensajes.status,
+                    Vmensajes.titulo, Vmensajes.fechaCita, Vmensajes.msgMensaje, Vmensajes.participantes,
+                    Users.Name as NombreTerapeuta, AsuntosMsg.asunto_dsc as Prioridad
+             FROM Vmensajes
+             LEFT JOIN Users ON Users.Username = Vmensajes.UsuarioSend
+             LEFT JOIN AsuntosMsg ON Vmensajes.asunto_id = AsuntosMsg.asunto_id
+             WHERE Vmensajes.mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id }, type: QueryTypes.SELECT }
+        );
+
+        if (!fila) {
+            throw new Error('Mensaje no encontrado');
+        }
+
+        let lineas: any[] = [];
+        if (fila.participantes && fila.participantes.trim()) {
+            try {
+                lineas = JSON.parse(`[${fila.participantes}]`);
+            } catch (e) {
+                console.log('No se pudo parsear participantes para el correo:', e);
+            }
+        }
+
+        const comentarios = (fila.msgMensaje || '')
+            .split('\n---\n')
+            .map((c: string) => c.trim())
+            .filter(Boolean);
+
+        const pacientes: string[] = Array.from(
+            new Set(lineas.map((l: any) => l.pacienteparticipante))
+        );
+
+        const seccionesPorPaciente = pacientes.map(paciente => {
+            const filasPaciente = lineas
+                .filter((l: any) => l.pacienteparticipante === paciente)
+                .map((l: any) => `
+                    <tr>
+                        <td style="border:1px solid #ccc;padding:6px;">${l.posicionparticipante ?? ''}</td>
+                        <td style="border:1px solid #ccc;padding:6px;">${l.nombreparticipante ?? ''}</td>
+                        <td style="border:1px solid #ccc;padding:6px;">${l.cantidadDespachada ?? ''}</td>
+                        <td style="border:1px solid #ccc;padding:6px;">${l.emailparticipante ?? ''}</td>
+                    </tr>`).join('');
+
+            return `
+                <h3 style="margin-bottom:4px;">${paciente}</h3>
+                <table style="border-collapse:collapse;width:100%;margin-bottom:20px;">
+                    <thead>
+                        <tr style="background:#eee;">
+                            <th style="border:1px solid #ccc;padding:6px;">Insumo</th>
+                            <th style="border:1px solid #ccc;padding:6px;">Cant. Solicitada</th>
+                            <th style="border:1px solid #ccc;padding:6px;">Cant. Despachada</th>
+                            <th style="border:1px solid #ccc;padding:6px;">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filasPaciente}</tbody>
+                </table>`;
+        }).join('');
+
+        const observacionesHtml = comentarios.length > 0 ? `
+            <h3>Observaciones</h3>
+            ${comentarios.map((c: string) => `<p style="border-left:3px solid #000;padding:6px 0 6px 10px;margin:6px 0;">${c}</p>`).join('')}` : '';
+
+        const html = `
+            <h2>Solicitud Insumo No: ${fila.mensaje_id} - Fin de Proceso</h2>
+            <p><strong>Terapeuta:</strong> ${fila.NombreTerapeuta || fila.UsuarioSend}</p>
+            <p><strong>Fecha:</strong> ${fila.fechaCita || ''}</p>
+            <p><strong>Prioridad:</strong> ${fila.Prioridad || ''}</p>
+            <p><strong>Descripción:</strong> ${fila.titulo || ''}</p>
+            ${seccionesPorPaciente}
+            ${observacionesHtml}
+            <br><br>Favor no responder a este correo!`;
+
+        await enviarCorreoGraph({
+            to: DESTINATARIO_CORREO_MENSAJE,
+            subject: `Fin de Proceso - Solicitud Insumo No: ${fila.mensaje_id} - ${fila.NombreTerapeuta || fila.UsuarioSend}`,
+            html,
+        });
+
+        await sequelize.query(
+            `UPDATE Vmensajes SET status = :status WHERE mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id, status: 'DESPACHADA' }, type: QueryTypes.UPDATE }
+        );
     } catch (error) {
         console.error('unable to connect to the datatabase:', error);
         throw error;
@@ -2638,10 +2741,17 @@ exports.createMensaje = async (msg: VmensajesAttributes) => {
         const exists = await models.Vmensajes.findOne({ where: { mensaje_id: msg.mensaje_id } });
         console.log('Existe? ',exists)
         if (exists) {
+            // Una vez que el terapeuta envía la solicitud por correo (status
+            // pasa a ENVIADA) o el proceso avanza más allá de eso, ya no se
+            // puede modificar desde la app móvil.
+            const statusActual = (exists.status || '').trim().toUpperCase();
+            if (statusActual && statusActual !== 'PENDIENTE') {
+                throw new Error('SOLICITUD_BLOQUEADA');
+            }
             //console.log('Existe? ',exists)
             const Mensaje = await models.Vmensajes.update(msg, { where: { mensaje_id: msg.mensaje_id } });
             return Mensaje;
-            
+
         }
         else {
            console.log('No existe')
@@ -2693,10 +2803,11 @@ exports.createMensaje = async (msg: VmensajesAttributes) => {
         }
         return Mensaje;
     }
-     
+
 
     } catch (error) {
         console.error('unable to connect to the datatabase:', error);
+        throw error;
     }
 }
 

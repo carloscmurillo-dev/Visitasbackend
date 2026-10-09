@@ -22,7 +22,7 @@ import { ADD_CATEGORY_ENDPOINT, UPDATE_ITEM_CODE_ENDPOINT, GET_ITEM_DISCOUNTS_EN
     GET_VISITAS_HISTORICAS_ADMIN_ENDPOINT,
     GET_PACIENTES_ADMIN_ENDPOINT,UPDATE_PACIENTE_ADMIN_ENDPOINT,
     GET_INSUMOS_ADMIN_ENDPOINT,GET_INSUMOS_REMITENTES_ENDPOINT,GET_INSUMO_DETALLE_ADMIN_ENDPOINT,
-    UPDATE_INSUMO_DESPACHO_ENDPOINT
+    UPDATE_INSUMO_DESPACHO_ENDPOINT,FINALIZAR_PROCESO_INSUMO_ENDPOINT
 } from '../../constants/endpoint';
 const validarManager = require('../../middleware/validarManager');
 const validarManagerOAdministrativo = require('../../middleware/validarManagerOAdministrativo');
@@ -587,3 +587,4 @@ router.get(`${GET_INSUMOS_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo,
 router.get(`${GET_INSUMOS_REMITENTES_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getInsumosRemitentes);
 router.get(`${GET_INSUMO_DETALLE_ADMIN_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.getInsumoDetalleAdmin);
 router.put(`${UPDATE_INSUMO_DESPACHO_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.actualizarDespachoInsumo);
+router.put(`${FINALIZAR_PROCESO_INSUMO_ENDPOINT}`, auth, validarManagerOAdministrativo, amimedController.finalizarProcesoInsumo);

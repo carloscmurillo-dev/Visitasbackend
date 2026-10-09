@@ -132,6 +132,7 @@ export const GET_INSUMOS_ADMIN_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos`
 export const GET_INSUMOS_REMITENTES_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/remitentes`
 export const GET_INSUMO_DETALLE_ADMIN_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id`
 export const UPDATE_INSUMO_DESPACHO_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id/despacho`
+export const FINALIZAR_PROCESO_INSUMO_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id/finalizar`
 export const GET_VISITASHOSPITALES_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasHospitales`
 export const GET_VISITASXTERAPEUTA_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxTerapeuta`
 export const GET_VISITASXTERAPEUTAHISTO_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxTerapeutaHisto`

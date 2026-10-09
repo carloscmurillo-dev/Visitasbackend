@@ -414,27 +414,35 @@ exports.createMensaje = async (req: any, res: any, next: any) => {
 
         console.log('..........................Datos del req.body de controllers.................................',req.body)
 
-    const Mensaje = await createMensaje({
-        mensaje_id,
-        mensajeResp_id,
-        UsuarioSend,
-        UsuarioRecep,
-        msgDate,
-        msgDateCita,
-        asunto_id,
-        msgMensaje,
-        msgMensajeRespuesta,
-        msgUsuarioRecepOk,
-        msgEliminado,
-        IdMensajeOriginal,
-        categoria_id,
-        participantes,
-        participantesCia,
-        tipoMensaje,
-        status,
-        Foto,
-        titulo,fechaCita });
-    res.status(200).send({ ok: true, msg: 'actualizar Mensajes From API', Mensaje });
+    try {
+        const Mensaje = await createMensaje({
+            mensaje_id,
+            mensajeResp_id,
+            UsuarioSend,
+            UsuarioRecep,
+            msgDate,
+            msgDateCita,
+            asunto_id,
+            msgMensaje,
+            msgMensajeRespuesta,
+            msgUsuarioRecepOk,
+            msgEliminado,
+            IdMensajeOriginal,
+            categoria_id,
+            participantes,
+            participantesCia,
+            tipoMensaje,
+            status,
+            Foto,
+            titulo,fechaCita });
+        res.status(200).send({ ok: true, msg: 'actualizar Mensajes From API', Mensaje });
+    } catch (error: any) {
+        if (error?.message === 'SOLICITUD_BLOQUEADA') {
+            return res.status(409).send({ ok: false, msg: 'Esta solicitud ya fue enviada y no puede modificarse.' });
+        }
+        console.error('Error al guardar/actualizar Mensaje:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo guardar la solicitud' });
+    }
 }
 
 exports.updateMensaje = async (req: any, res: any, next: any) => {
