@@ -634,6 +634,12 @@ exports.actualizarDespachoInsumo = async (mensaje_id: number, participantes: str
 // a "Eliminar" en MensajeScreen). El destinatario queda fijo por ahora.
 const DESTINATARIO_CORREO_MENSAJE = 'carlosmurillo@amimedsaludcr.com';
 
+// URL del panel admin web (AmimedFrontEnd), para armar el link directo a la
+// solicitud dentro del correo. Por ahora localhost (el panel aún no está
+// desplegado públicamente); cuando se despliegue, basta con configurar
+// ADMIN_FRONTEND_URL en las variables de entorno.
+const ADMIN_FRONTEND_URL = process.env.ADMIN_FRONTEND_URL || 'http://localhost:5173';
+
 exports.enviarCorreoMensaje = async (mensaje_id: number) => {
     const sequelize = require('./database');
     try {
@@ -687,6 +693,8 @@ exports.enviarCorreoMensaje = async (mensaje_id: number) => {
                 <tbody>${filasTabla}</tbody>
             </table>` : '<p>Sin insumos registrados.</p>';
 
+        const urlSolicitud = `${ADMIN_FRONTEND_URL}/insumos?mensaje_id=${fila.mensaje_id}`;
+
         const html = `
             <h2>${tipoTexto} No: ${fila.mensaje_id}</h2>
             <p><strong>Terapeuta:</strong> ${fila.NombreTerapeuta || fila.UsuarioSend}</p>
@@ -695,6 +703,7 @@ exports.enviarCorreoMensaje = async (mensaje_id: number) => {
             <p><strong>Estatus:</strong> ${fila.status || ''}</p>
             <p><strong>Descripción:</strong> ${fila.titulo || ''}</p>
             <p><strong>Observaciones:</strong><br>${(fila.msgMensaje || '').replace(/\n/g, '<br>')}</p>
+            <p><a href="${urlSolicitud}">Ver esta solicitud en el administrativo</a></p>
             ${tablaHtml}
             <br><br>Favor no responder a este correo!`;
 
