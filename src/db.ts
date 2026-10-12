@@ -516,11 +516,25 @@ exports.updatePacienteAdmin = async (idPaciente: string, datos: any) => {
 // lista es de solo lectura (sin editar/borrar) y ve las solicitudes de
 // TODOS los terapeutas, no solo las propias. 'Foto' (varbinary, puede ser
 // pesado) se deja fuera de la lista y solo se trae en el detalle.
+//
+// Ciclo de estatus de una Solicitud de Insumo:
+//   CREANDO SOLICITUD -> (terapeuta guarda/edita, el administrativo no la ve)
+//   ENVIADA            -> (terapeuta le da "Enviar Correo"; ya no se puede editar)
+//   PENDIENTE          -> (el administrativo abre el detalle por primera vez)
+//   ALISTANDO          -> (el administrativo imprime la Hoja de Alisto)
+//   DESPACHANDO        -> (el administrativo guarda "Actualizar Despacho")
+//   DESPACHADO         -> (el administrativo le da "Fin de Proceso")
+//   RECIBIDO CONFORME  -> (el terapeuta confirma recibido en la app móvil)
+//   ELIMINADO          -> (en cualquier momento, desde la app móvil)
+const ESTATUS_CREANDO_SOLICITUD = 'Creando Solicitud';
+
 exports.getInsumosAdmin = async (filtros: { estatus?: string; usuarioSend?: string }) => {
     const sequelize = require('./database');
     try {
-        const condiciones: string[] = ['1=1'];
-        const replacements: any = {};
+        // 'Creando Solicitud' es un borrador del terapeuta: nunca debe
+        // verlo el administrativo, sin importar qué filtro de estatus pida.
+        const condiciones: string[] = ['status != :estatusCreando'];
+        const replacements: any = { estatusCreando: ESTATUS_CREANDO_SOLICITUD };
 
         if (filtros.estatus && filtros.estatus !== '*') {
             condiciones.push('status = :estatus');
@@ -571,7 +585,22 @@ exports.getInsumoDetalleAdmin = async (mensaje_id: number) => {
             { replacements: { mensaje_id }, type: QueryTypes.SELECT }
         );
 
-        if (!fila) return null;
+        // Todavía es un borrador del terapeuta: el administrativo no debe
+        // poder verla, ni siquiera entrando directo por el link/id.
+        if (!fila || (fila.status || '').trim().toUpperCase() === ESTATUS_CREANDO_SOLICITUD.toUpperCase()) {
+            return null;
+        }
+
+        // Primera vez que el administrativo abre esta solicitud: pasa de
+        // ENVIADA a PENDIENTE automáticamente.
+        let status = fila.status;
+        if ((status || '').trim().toUpperCase() === 'ENVIADA') {
+            status = 'PENDIENTE';
+            await sequelize.query(
+                `UPDATE Vmensajes SET status = :status WHERE mensaje_id = :mensaje_id`,
+                { replacements: { mensaje_id, status }, type: QueryTypes.UPDATE }
+            );
+        }
 
         // Foto se guarda como varbinary, pero lo que realmente contiene es el
         // string completo (data-uri base64, o el literal "NULL" cuando no
@@ -579,6 +608,7 @@ exports.getInsumoDetalleAdmin = async (mensaje_id: number) => {
         const fotoTexto = fila.Foto ? Buffer.from(fila.Foto).toString('utf8') : null;
         return {
             ...fila,
+            status,
             Foto: fotoTexto && fotoTexto !== 'NULL' ? fotoTexto : null,
         };
     } catch (error) {
@@ -594,14 +624,14 @@ exports.getInsumoDetalleAdmin = async (mensaje_id: number) => {
 const SEPARADOR_COMENTARIOS = '\n---\n';
 
 // Guarda las cantidades despachadas (columna 'participantes' re-serializada
-// desde el frontend), pasa el estatus de la solicitud a 'Despachando...', y
+// desde el frontend), pasa el estatus de la solicitud a 'DESPACHANDO', y
 // si viene un comentario nuevo lo agrega al final de 'msgMensaje' sin borrar
 // lo que ya había.
 exports.actualizarDespachoInsumo = async (mensaje_id: number, participantes: string, comentarioNuevo?: string) => {
     const sequelize = require('./database');
     try {
         const sets = ['participantes = :participantes', 'status = :status'];
-        const replacements: any = { mensaje_id, participantes, status: 'Despachando...' };
+        const replacements: any = { mensaje_id, participantes, status: 'DESPACHANDO' };
 
         let msgMensaje: string | undefined;
         if (comentarioNuevo && comentarioNuevo.trim()) {
@@ -728,7 +758,7 @@ exports.enviarCorreoMensaje = async (mensaje_id: number) => {
 // Reporte combinado de despacho (todos los pacientes en un solo correo, a
 // diferencia de la Hoja de Despacho impresa que genera una hoja por
 // paciente), disparado por el botón "Fin de Proceso" en el admin web.
-// Cierra el proceso: pasa la solicitud a 'DESPACHADA'.
+// Cierra el proceso: pasa la solicitud a 'DESPACHADO'.
 exports.finalizarProcesoInsumo = async (mensaje_id: number) => {
     const sequelize = require('./database');
     try {
@@ -813,7 +843,104 @@ exports.finalizarProcesoInsumo = async (mensaje_id: number) => {
 
         await sequelize.query(
             `UPDATE Vmensajes SET status = :status WHERE mensaje_id = :mensaje_id`,
-            { replacements: { mensaje_id, status: 'DESPACHADA' }, type: QueryTypes.UPDATE }
+            { replacements: { mensaje_id, status: 'DESPACHADO' }, type: QueryTypes.UPDATE }
+        );
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+// Marca la solicitud como 'ALISTANDO' cuando el administrativo imprime la
+// Hoja de Alisto (preparación física de los insumos antes de despachar).
+exports.marcarAlistandoInsumo = async (mensaje_id: number) => {
+    const sequelize = require('./database');
+    try {
+        await sequelize.query(
+            `UPDATE Vmensajes SET status = :status WHERE mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id, status: 'ALISTANDO' }, type: QueryTypes.UPDATE }
+        );
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
+// Último paso del ciclo: desde la app móvil, una vez que la solicitud está
+// 'DESPACHADO', el terapeuta confirma que recibió los insumos. Envía los
+// datos generales de la solicitud por correo con una leyenda de cierre, y
+// pasa la solicitud a 'RECIBIDO CONFORME'.
+exports.recibidoConformeInsumo = async (mensaje_id: number) => {
+    const sequelize = require('./database');
+    try {
+        const [fila] = await sequelize.query(
+            `SELECT Vmensajes.mensaje_id, Vmensajes.UsuarioSend, Vmensajes.tipoMensaje, Vmensajes.status,
+                    Vmensajes.titulo, Vmensajes.fechaCita, Vmensajes.msgMensaje, Vmensajes.participantes,
+                    Users.Name as NombreTerapeuta, AsuntosMsg.asunto_dsc as Prioridad
+             FROM Vmensajes
+             LEFT JOIN Users ON Users.Username = Vmensajes.UsuarioSend
+             LEFT JOIN AsuntosMsg ON Vmensajes.asunto_id = AsuntosMsg.asunto_id
+             WHERE Vmensajes.mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id }, type: QueryTypes.SELECT }
+        );
+
+        if (!fila) {
+            throw new Error('Mensaje no encontrado');
+        }
+
+        if ((fila.status || '').trim().toUpperCase() !== 'DESPACHADO') {
+            throw new Error('ESTADO_INVALIDO');
+        }
+
+        let lineas: any[] = [];
+        if (fila.participantes && fila.participantes.trim()) {
+            try {
+                lineas = JSON.parse(`[${fila.participantes}]`);
+            } catch (e) {
+                console.log('No se pudo parsear participantes para el correo:', e);
+            }
+        }
+
+        const filasTabla = lineas.map((l: any) => `
+            <tr>
+                <td style="border:1px solid #ccc;padding:6px;">${l.nombreparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.posicionparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.pacienteparticipante ?? ''}</td>
+                <td style="border:1px solid #ccc;padding:6px;">${l.cantidadDespachada ?? ''}</td>
+            </tr>`).join('');
+
+        const tablaHtml = lineas.length > 0 ? `
+            <table style="border-collapse:collapse;width:100%;margin-top:10px;">
+                <thead>
+                    <tr style="background:#eee;">
+                        <th style="border:1px solid #ccc;padding:6px;">Cant.</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Insumo</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Paciente</th>
+                        <th style="border:1px solid #ccc;padding:6px;">Cant. Despachada</th>
+                    </tr>
+                </thead>
+                <tbody>${filasTabla}</tbody>
+            </table>` : '';
+
+        const html = `
+            <h2>Solicitud Insumo No: ${fila.mensaje_id}</h2>
+            <p><strong>Terapeuta:</strong> ${fila.NombreTerapeuta || fila.UsuarioSend}</p>
+            <p><strong>Fecha:</strong> ${fila.fechaCita || ''}</p>
+            <p><strong>Prioridad:</strong> ${fila.Prioridad || ''}</p>
+            <p><strong>Descripción:</strong> ${fila.titulo || ''}</p>
+            ${tablaHtml}
+            <h2 style="margin-top:24px;">RECIBIDO Y ACEPTADO CONFORME</h2>
+            <br><br>Favor no responder a este correo!`;
+
+        await enviarCorreoGraph({
+            to: DESTINATARIO_CORREO_MENSAJE,
+            subject: `Recibido Conforme - Solicitud Insumo No: ${fila.mensaje_id} - ${fila.NombreTerapeuta || fila.UsuarioSend}`,
+            html,
+        });
+
+        await sequelize.query(
+            `UPDATE Vmensajes SET status = :status WHERE mensaje_id = :mensaje_id`,
+            { replacements: { mensaje_id, status: 'RECIBIDO CONFORME' }, type: QueryTypes.UPDATE }
         );
     } catch (error) {
         console.error('unable to connect to the datatabase:', error);
@@ -2752,9 +2879,12 @@ exports.createMensaje = async (msg: VmensajesAttributes) => {
         if (exists) {
             // Una vez que el terapeuta envía la solicitud por correo (status
             // pasa a ENVIADA) o el proceso avanza más allá de eso, ya no se
-            // puede modificar desde la app móvil.
+            // puede modificar desde la app móvil - salvo borrarla, que debe
+            // seguir funcionando sin importar en qué estatus esté.
             const statusActual = (exists.status || '').trim().toUpperCase();
-            if (statusActual && statusActual !== 'PENDIENTE') {
+            const statusNuevo = (msg.status || '').trim().toUpperCase();
+            const esBorrador = statusActual === ESTATUS_CREANDO_SOLICITUD.toUpperCase() || !statusActual;
+            if (!esBorrador && statusNuevo !== 'ELIMINADO') {
                 throw new Error('SOLICITUD_BLOQUEADA');
             }
             //console.log('Existe? ',exists)

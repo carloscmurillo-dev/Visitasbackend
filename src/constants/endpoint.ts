@@ -133,6 +133,7 @@ export const GET_INSUMOS_REMITENTES_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos
 export const GET_INSUMO_DETALLE_ADMIN_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id`
 export const UPDATE_INSUMO_DESPACHO_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id/despacho`
 export const FINALIZAR_PROCESO_INSUMO_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id/finalizar`
+export const MARCAR_ALISTANDO_INSUMO_ENDPOINT = `${AMIMED_ENDPOINT}/admin/insumos/:mensaje_id/alistando`
 export const GET_VISITASHOSPITALES_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasHospitales`
 export const GET_VISITASXTERAPEUTA_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxTerapeuta`
 export const GET_VISITASXTERAPEUTAHISTO_ENDPOINT = `${AMIMED_ENDPOINT}/getVisitasxTerapeutaHisto`
@@ -167,6 +168,7 @@ export const REGISTER_USER_ENDPOINT = `${AUTH_ENDPOINT}/registerUser`;
 
 export const GET_FOTOMENSAJE_ENDPOINT = `${AMIMED_ENDPOINT}/getFotoMensaje`;
 export const ENVIAR_CORREO_MENSAJE_ENDPOINT = `${AMIMED_ENDPOINT}/enviarCorreoMensaje/:mensaje_id`;
+export const RECIBIDO_CONFORME_INSUMO_ENDPOINT = `${AMIMED_ENDPOINT}/recibidoConformeInsumo/:mensaje_id`;
 
 export const GET_PACIENTESVISITAS_ENDPOINT = `${AMIMED_ENDPOINT}/getPacientesVisitas`;
 
