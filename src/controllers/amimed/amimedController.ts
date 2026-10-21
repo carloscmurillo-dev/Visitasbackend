@@ -6,7 +6,7 @@ const { getPacientes,getTiposVisitas,getEstadosEquipos,getVisitasHospitales,
         contarFotosVisita,crearFotoVisita,getFotosVisita,eliminarFotoVisita,getTerapeutasResumen,
         getTerapeutasAdmin,updateTerapeutaAdmin,getUsuariosAdmin,createUsuarioAdmin,updateUsuarioAdmin,
         getVisitasTotalesAdmin,getPacientesAdmin,updatePacienteAdmin,
-        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin,actualizarDespachoInsumo,enviarCorreoMensaje,finalizarProcesoInsumo,marcarAlistandoInsumo,recibidoConformeInsumo} = require('../../db');
+        getInsumosAdmin,getInsumosRemitentes,getInsumoDetalleAdmin,actualizarDespachoInsumo,enviarCorreoMensaje,finalizarProcesoInsumo,marcarAlistandoInsumo,recibidoConformeInsumo,getAvanceVisitasAdmin} = require('../../db');
 const bcrypt = require('bcrypt');
 import axios from 'axios';
 import { getCipherInfo } from 'crypto';
@@ -300,6 +300,17 @@ exports.getTerapeutasResumen = async (req: any, res: any, next: any) => {
     } catch (error) {
         console.error('Error al obtener terapeutas:', error);
         res.status(500).send({ ok: false, msg: 'No se pudieron obtener los terapeutas' });
+    }
+}
+
+exports.getAvanceVisitasAdmin = async (req: any, res: any, next: any) => {
+    try {
+        const { IdMesVisita } = req.query;
+        const avance = await getAvanceVisitasAdmin(IdMesVisita);
+        res.status(200).send({ ok: true, avance });
+    } catch (error) {
+        console.error('Error al obtener avance de visitas:', error);
+        res.status(500).send({ ok: false, msg: 'No se pudo obtener el avance de visitas' });
     }
 }
 

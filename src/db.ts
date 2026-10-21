@@ -3484,6 +3484,37 @@ exports.getTerapeutasResumen = async () => {
     }
 }
 
+// Avance de visitas (AmimedFrontEnd, dashboard admin) - misma lógica de
+// ControlVisitasScreen en la app móvil (ahí viene acotada a un terapeuta vía
+// getPacientesVisitas), pero sin filtrar por terapeuta: trae el universo
+// completo de pacientes a visitar ese mes, de TODOS los terapeutas, con el
+// nombre del terapeuta ya resuelto para poder agrupar en el admin.
+exports.getAvanceVisitasAdmin = async (IdMesVisita: string) => {
+    const sequelize = require('./database');
+    try {
+        const filas = await sequelize.query(
+            `SELECT t.idPaciente, t.NombrePaciente, t.IdTerapeuta, ter.NombreTerapeuta, t.IdHospital, t.IdMesVisita, t.FechaVisita, t.SharePoint
+             FROM ViewVisitasTotales t
+             LEFT JOIN terapeutas ter ON ter.IdTerapeuta = t.IdTerapeuta
+             WHERE t.IdMesVisita = :IdMesVisita
+             UNION
+             SELECT p.idPaciente, p.NombrePaciente, p.IdTerapeuta, ter2.NombreTerapeuta, p.hospital, '', '', ''
+             FROM pacientes p
+             LEFT JOIN terapeutas ter2 ON ter2.IdTerapeuta = p.IdTerapeuta
+             WHERE p.idPaciente NOT IN (
+                 SELECT idPaciente FROM ViewVisitasTotales WHERE ViewVisitasTotales.IdMesVisita = :IdMesVisita
+             ) AND p.modalidad = '- REGULAR'
+             ORDER BY NombreTerapeuta, NombrePaciente
+             OPTION (RECOMPILE, FORCE ORDER)`,
+            { replacements: { IdMesVisita }, type: QueryTypes.SELECT }
+        );
+        return filas;
+    } catch (error) {
+        console.error('unable to connect to the datatabase:', error);
+        throw error;
+    }
+}
+
 // Mantenimiento de terapeutas (pantalla admin en AmimedFrontEnd). Se listan
 // solo columnas explícitas a propósito, para que 'Contraseña' y 'password'
 // nunca puedan filtrarse acá aunque la tabla gane más columnas a futuro.
